@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- hexo-inject:begin --><!-- hexo-inject:end --><!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="what is LR逻辑斯蒂回归既可以解决分类问题也可以解决回归问题，正常情况下都是输出一个概率值，也就是这个值大于0.5那么认为输出是正例，如果小于0.5输出就是负例，正负例是和训练样本中的正负例对应的。一般都是解决二分类问题，也就是说一个预测值是1还是0。 逻辑斯蒂回归模型在做分类时，其实相当于是一个只有单个输入层单个输出层没有隐含层的感知器模型，多个输入节点通过权值将输入样本值传递给Logi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="大白话LR">
+<meta property="og:url" content="http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/index.html">
+<meta property="og:site_name" content="">
+<meta property="og:description" content="what is LR逻辑斯蒂回归既可以解决分类问题也可以解决回归问题，正常情况下都是输出一个概率值，也就是这个值大于0.5那么认为输出是正例，如果小于0.5输出就是负例，正负例是和训练样本中的正负例对应的。一般都是解决二分类问题，也就是说一个预测值是1还是0。 逻辑斯蒂回归模型在做分类时，其实相当于是一个只有单个输入层单个输出层没有隐含层的感知器模型，多个输入节点通过权值将输入样本值传递给Logi">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2014-03-14T03:52:36.000Z">
+<meta property="article:modified_time" content="2020-05-05T12:01:40.592Z">
+<meta property="article:author" content="Zheng Jihui">
+<meta property="article:tag" content="Machine Learning">
+<meta name="twitter:card" content="summary">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>大白话LR</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+      
+<link rel="stylesheet" href="/css/rtl.css">
+
+    
+    <!-- rss -->
+    
+    
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <!-- hexo-inject:begin --><!-- hexo-inject:end --><div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="http://zjhmale.github.io" target="_blank" rel="noopener">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/zjhmale" target="_blank" rel="noopener">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2014/08/01/2014-08-01-cljmlchapter1-use-matrices/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2013/12/10/2013-12-10-xie-fang-chai-ju-zhen-on-python/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/" target="_blank" rel="noopener"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/&text=大白话LR" target="_blank" rel="noopener"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/&title=大白话LR" target="_blank" rel="noopener"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/&is_video=false&description=大白话LR" target="_blank" rel="noopener"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=大白话LR&body=Check out this article: http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/&title=大白话LR" target="_blank" rel="noopener"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/&title=大白话LR" target="_blank" rel="noopener"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/&title=大白话LR" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/&title=大白话LR" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/&name=大白话LR&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/&t=大白话LR" target="_blank" rel="noopener"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#what-is-LR"><span class="toc-number">1.</span> <span class="toc-text">what is LR</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#how-it-works"><span class="toc-number">2.</span> <span class="toc-text">how it works</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#how-to-implement-vectorization"><span class="toc-number">3.</span> <span class="toc-text">how to implement vectorization</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        大白话LR
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name"></span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2014-03-14T03:52:36.000Z" itemprop="datePublished">2014-03-14</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link" href="/tags/Machine-Learning/" rel="tag">Machine Learning</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h3 id="what-is-LR"><a href="#what-is-LR" class="headerlink" title="what is LR"></a>what is LR</h3><p>逻辑斯蒂回归既可以解决分类问题也可以解决回归问题，正常情况下都是输出一个概率值，也就是这个值大于<script type="math/tex">0.5</script>那么认为输出是正例，如果小于<script type="math/tex">0.5</script>输出就是负例，正负例是和训练样本中的正负例对应的。一般都是解决二分类问题，也就是说一个预测值是<script type="math/tex">1</script>还是<script type="math/tex">0</script>。</p>
+<p>逻辑斯蒂回归模型在做分类时，其实相当于是一个只有单个输入层单个输出层没有隐含层的感知器模型，多个输入节点通过权值将输入样本值传递给<code>Logistic</code>函数，然后得到最终的输出值，也就是一个在<script type="math/tex">[0, 1]</script>之间的概率值。</p>
+<h3 id="how-it-works"><a href="#how-it-works" class="headerlink" title="how it works"></a>how it works</h3><p><code>Logistic</code>函数的表达式或者也叫做<code>Sigmoid</code>函数</p>
+<script type="math/tex; mode=display">\frac{1}{1+e^{-z}}</script><p>上面说得多个输入节点通过权值将输入样本传递给输出层的节点的过程可以用下面的公式描述</p>
+<script type="math/tex; mode=display">\theta _{0} + \theta_{1}\cdot x_{1} + ... + \theta_{n} \cdot x_{n} = \sum_{i=0}^{n} \theta _{i} \cdot x_{i} = \theta ^{T} \cdot x</script><p>其中<script type="math/tex">x=[x_{0}, x_{1} \; ... \; x_{n}]</script>表示输入值向量，<script type="math/tex">\theta=[\theta_{0}, \theta_{1} \; ... \; \theta_{n}]</script>的是权值向量，要保证有一个常数项用来控制偏移，所以<script type="math/tex">X_{0} = 1</script>为，在上面的公式也体现了</p>
+<p>然后通过将得到这个非激活值传递给<code>Logistic</code>函数得到最终的输出</p>
+<script type="math/tex; mode=display">h_{\theta} (x) = g(\theta _{0} + \theta_{1}\cdot x_{1} + ... + \theta_{n} \cdot x_{n}) = g(\theta ^{T} \cdot x) = \frac{1}{1+e^{-\theta ^{T} \cdot x}}</script><script type="math/tex; mode=display">h_{\theta} (x)$$函数的物理意义在于其输出的值是当前输入样本数据是正例的概率，输出的值越接近于$$1$$，表示当前样本是正例的概率越大。
+
+所以输入样本为正例的概率为
+
+$$P(y=1|x;\theta) = h_{\theta}(x)</script><p>输入样本为负例的概率为</p>
+<script type="math/tex; mode=display">P(y=0|x;\theta) = 1-h_{\theta}(X)</script><p>两个式子可以合并为一个</p>
+<script type="math/tex; mode=display">P(y|x;\theta) = (h_{\theta}(x))^{y} \cdot (1-h_{\theta}(x))^{(1-y)}</script><p>确定了数据传递的关系之后，就可以构造损失函数开始训练了，根据<code>L2</code>范式，可以构造如下省略了正则化项的损失函数，其实可以从另一个角度理解LR的损失函数，其实就是让原本是负例的样本的输出是负例的概率尽可能大，原本是正例的样本经过输出之后是正例的概率也尽可能大，将每一个样本的概率乘起来的值要尽可能大才能保证模型可以拟合样本数据。</p>
+<p>因为要使概率尽可能大，所以构造似然函数</p>
+<script type="math/tex; mode=display">L(\theta) = P(\vec{y}|X;\theta) = \prod_{i}^{m} P\left ( y^{(i)}|x^{(i)};\theta \right ) = \prod_{i}^{m} (h_{\theta}(x^{(i)}))^{y^{(i)}} \cdot (1-h_{\theta}(x^{(i)}))^{(1-y^{(i)})}</script><p>由于乘积项没有求和项好操作，所以我们可以取一个对数从而将乘积变为求和又不改变目标函数的单调性</p>
+<script type="math/tex; mode=display">l(\theta) = log(L(\theta)) = \sum_{i=1}^{m}y^{(i)} \cdot log(h(x^{(i)})) + (1-y^{(i)}) \cdot log(1-h(x^{(i)}))</script><p>如果按照这个损失函数去训练的话，我们需要找到这个函数的全局最大值或者是某一个局部最大值，目前没有行之有效的算法，但是如果把问题转换成一个求最小值的问题，就可以使用梯度下降算法来进行训练了</p>
+<script type="math/tex; mode=display">J(\theta) = \frac{1}{m} \sum_{i=1}^{m}Cost(h_{\theta}(x^{(i)}), y^{(i)}) = -\frac{1}{m}[\sum_{i=1}^{m}y^{(i)} \cdot log(h(x^{(i)})) + (1-y^{(i)}) \cdot log(1-h(x^{(i)}))]</script><p>至此，已经构造出了用于训练的损失函数，下面就可以使用梯度下降来推导权值更新的公式了，我们定义<script type="math/tex">\alpha</script>为梯度下降的学习速率</p>
+<script type="math/tex; mode=display">\begin{align*}
+\frac{\partial J(\theta) }{\partial \theta_{j}} &= -\frac{1}{m}\sum_{i=1}^{m}(y^{(i)}\frac{1}{h_{\theta}(x_{(i)})}\frac{\partial h_{\theta}(x^{(i)})}{\partial \theta_{j}} - (1-y^{(i)})\frac{1}{1-h_{\theta}(x^{(i)})}\frac{\partial h_{\theta}(x^{(i)})}{\partial \theta_{j}}) \\ &= -\frac{1}{m}\sum_{i=1}^{m}(y^{(i)}\frac{1}{g(\theta^{T}x^{(i)})}-(1-y^{(i)})\frac{1}{1-g(\theta^{T}x^{(i)})})\frac{\partial g(\theta^{T}x^{(i)})}{\partial \theta_{j}} \\ &= -\frac{1}{m}\sum_{i=1}^{m}(y^{(i)}\frac{1}{g(\theta^{T}x^{(i)})}-(1-y^{(i)})\frac{1}{1-g(\theta^{T}x^{(i)})})g(\theta^{T}x^{(i)})(1-g(\theta^{T}x^{(i)}))\frac{\partial \theta^{T}x^{(i)}}{\partial \theta_{j}} \\ &= -\frac{1}{m}\sum_{i=1}^{m}(y^{(i)}(1-g(\theta^{T}x^{(i)})) - (1-y^{(i)})g(\theta^{T}x^{(i)})))x_{j}^{(i)} = -\frac{1}{m}\sum_{i=1}^{m}(y^{(i)}-g(\theta^{T}x^{(i)}))x_{j}^{(i)} \\ &= -\frac{1}{m}\sum_{i=1}^{m}(y^{(i)}-h_{\theta}(x^{(i)}))x_{j}^{(i)} \\ &= \frac{1}{m}\sum_{i=1}^{m}(h_{\theta}(x^{(i)})-y^{(i)})x_{j}^{(i)}
+\end{align*}</script><p>上面的推导中用到了<code>Logistic</code>函数求导的性质</p>
+<p>上面公式已经推导出了梯度值，而梯度下降就是沿着负梯度的方向优化，所以最终权值更新的公式就是</p>
+<script type="math/tex; mode=display">\theta_{j} := \theta_{j} - \alpha\frac{1}{m}\sum_{i=1}^{m}(h_{\theta}(x^{(i)})-y^{(i)})x_{j}^{(i)}, \; (j = 0 \; ... \; n)</script><p>因为<script type="math/tex">\frac{1}{m}</script>和<script type="math/tex">\alpha</script>都是常数，所以这两项可以合并为一个常数项<script type="math/tex">\alpha</script>，更新公式可以最终化简为</p>
+<script type="math/tex; mode=display">\theta_{j} := \theta_{j} - \alpha\sum_{i=1}^{m}(h_{\theta}(x^{(i)})-y^{(i)})x_{j}^{(i)}, \; (j = 0 \; ... \; n)</script><p>之后就可以进行批量梯度下降或者是随机梯度下降了</p>
+<h3 id="how-to-implement-vectorization"><a href="#how-to-implement-vectorization" class="headerlink" title="how to implement vectorization"></a>how to implement vectorization</h3><p>在批量梯度下降算法中，如果要进行一次迭代更新需要进行遍历操作，需要许多额外的代码，由于LR中的所有项都可以表示为向量，所以也可以推导出一个向量化或者说是矩阵化的学习算法实现</p>
+<p>首先定义训练样本集，<script type="math/tex">x</script>表示样本集中的输入值，<script type="math/tex">y</script>代表输出，可以看出有<script type="math/tex">m</script>个样本，每一个样本中有<script type="math/tex">n</script>个特征</p>
+<script type="math/tex; mode=display">x = \begin{bmatrix}
+x^{(1)}\\ 
+x^{(2)}\\ 
+...\\ 
+x^{(m)}
+\end{bmatrix}
+=
+\begin{bmatrix}
+x_{0}^{(1)} & x_{1}^{(1)} & ... & x_{n}^{(1)}\\ 
+x_{0}^{(2)} & x_{1}^{(2)} & ... & x_{n}^{(2)}\\ 
+... & ... & ... & ...\\ 
+x_{0}^{(m)} & x_{1}^{(m)} & ... & x_{n}^{(m)}
+\end{bmatrix}
+, \;
+y=\begin{bmatrix}
+y^{(1)}\\ 
+y^{(2)}\\ 
+...\\ 
+y^{(m)}
+\end{bmatrix}</script><p>一次权值向量也可以表示为</p>
+<script type="math/tex; mode=display">\theta = \begin{bmatrix}
+\theta_{1}\\ 
+\theta_{2}\\ 
+...\\ 
+\theta_{n}
+\end{bmatrix}</script><p>将输入给<code>Logistic</code>的为激活值表示为矩阵形式<script type="math/tex">A</script></p>
+<script type="math/tex; mode=display">
+A = x\cdot \theta = \begin{bmatrix}
+x_{0}^{(1)} & x_{1}^{(1)} & ... & x_{n}^{(1)}\\ 
+x_{0}^{(2)} & x_{1}^{(2)} & ... & x_{n}^{(2)}\\ 
+... & ... & ... & ...\\ 
+x_{0}^{(m)} & x_{1}^{(m)} & ... & x_{n}^{(m)}
+\end{bmatrix} \cdot 
+\begin{bmatrix}
+\theta_{1}\\ 
+\theta_{2}\\ 
+...\\ 
+\theta_{n}
+\end{bmatrix}
+=
+\begin{bmatrix}
+\theta_{0}x_{0}^{(1)} & \theta_{0}x_{1}^{(1)} & ... & \theta_{n}x_{n}^{(1)}\\ 
+\theta_{0}x_{0}^{(2)} & \theta_{0}x_{1}^{(2)} & ... & \theta_{n}x_{n}^{(2)}\\ 
+... & ... & ... & ...\\ 
+\theta_{0}x_{0}^{(m)} & \theta_{0}x_{1}^{(m)} & ... & \theta_{n}x_{n}^{(m)}
+\end{bmatrix}</script><p>计算误差为<script type="math/tex">E</script></p>
+<script type="math/tex; mode=display">
+E = h_{\theta}(x) - y =g(A)-y = \begin{bmatrix}
+g(A^{(1)}) - y^{(1)}\\ 
+g(A^{(2)}) - y^{(2)}\\ 
+...\\ 
+g(A^{(m)})-y^{(m)}
+\end{bmatrix}
+=
+\begin{bmatrix}
+e^{(1)}\\ 
+e^{(2)}\\ 
+...\\ 
+e^{(m)}
+\end{bmatrix}</script><p>所以可以根据上面更新单个权值的公式很容易地推导出矩阵形式的更新公式</p>
+<script type="math/tex; mode=display">
+\begin{bmatrix}
+\theta_{1}\\ 
+\theta_{2}\\ 
+...\\ 
+\theta_{n}
+\end{bmatrix}
+:=
+\begin{bmatrix}
+\theta_{1}\\ 
+\theta_{2}\\ 
+...\\ 
+\theta_{n}
+\end{bmatrix}
+-
+\alpha \cdot \begin{bmatrix}
+x_{0}^{(1)} & x_{0}^{(2)} & ... & x_{0}^{(m)}\\ 
+x_{1}^{(1)} & x_{1}^{(2)} & ... & x_{1}^{(m)}\\ 
+... & ... & ... & ...\\ 
+x_{n}^{(1)} & x_{n}^{(2)} & ... & x_{n}^{(m)}
+\end{bmatrix}
+\cdot
+E</script><p>最终向量化的更新公式化简后如下所示</p>
+<script type="math/tex; mode=display">\theta := \theta - \alpha \cdot (\frac{1}{m}) \cdot x^{T} \cdot (g(x\cdot \theta) - y)</script><p>所以向量化的更新步骤可以描述如下(<em>上文也提到了1/m是可以省略并入一个常数项的</em>)</p>
+<ol>
+<li>求<script type="math/tex">A = x \cdot \theta</script></li>
+<li>求<script type="math/tex">E = g(A) - y</script></li>
+<li>求<script type="math/tex">\theta := \theta - \alpha \cdot x^{T} \cdot E</script></li>
+</ol>
+<!--$$\begin{align*}
+P(\exists h \in \mathcal{H}. \vert \epsilon(h_i) - \hat{\epsilon(h_i)} \vert > \gamma) & = P (A_1 \cup \cdots \cup A_k) \\
+ & \le \sum_{i=1}^k P(A_i) \\
+ & \le \sum_{i=1}^k 2 \exp(-2 \gamma^2 m) \\
+ & = 2k \exp(-2 \gamma^2 m)
+\end{align*}$$
+
+
+$$\begin{align*}
+\frac{\partial J(\theta) }{\partial \theta_{j}} &= -\frac{1}{m}\sum_{i=1}^{m}(y^{(i)}\frac{1}{h_{\theta}(x_{(i)})}\frac{\partial h_{\theta}(x^{(i)})}{\partial \theta_{j}} - (1-y^{(i)})\frac{1}{1-h_{\theta}(x^{(i)})}\frac{\partial h_{\theta}(x^{(i)})}{\partial \theta_{j}}) \\ &= -\frac{1}{m}\sum_{i=1}^{m}(y^{(i)}\frac{1}{g(\theta^{T}x^{(i)})}-(1-y^{(i)})\frac{1}{1-g(\theta^{T}x^{(i)})})\frac{\partial g(\theta^{T}x^{(i)})}{\partial \theta_{j}} \\ &= -\frac{1}{m}\sum_{i=1}^{m}(y^{(i)}\frac{1}{g(\theta^{T}x^{(i)})}-(1-y^{(i)})\frac{1}{1-g(\theta^{T}x^{(i)})})g(\theta^{T}x^{(i)})(1-g(\theta^{T}x^{(i)}))\frac{\partial \theta^{T}x^{(i)}}{\partial \theta_{j}} \\ &= -\frac{1}{m}\sum_{i=1}^{m}(y^{(i)}(1-g(\theta^{T}x^{(i)})) - (1-y^{(i)})g(\theta^{T}x^{(i)})))x_{j}^{(i)} = -\frac{1}{m}\sum_{i=1}^{m}(y^{(i)}-g(\theta^{T}x^{(i)}))x_{j}^{(i)} \\ &= -\frac{1}{m}\sum_{i=1}^{m}(y^{(i)}-h_{\theta}(x^{(i)}))x_{j}^{(i)} \\ &= \frac{1}{m}\sum_{i=1}^{m}(h_{\theta}(x^{(i)})-y^{(i)})x_{j}^{(i)}
+\end{align*}$$-->
+
+  </div>
+</article>
+
+
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="http://zjhmale.github.io" target="_blank" rel="noopener">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/zjhmale" target="_blank" rel="noopener">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#what-is-LR"><span class="toc-number">1.</span> <span class="toc-text">what is LR</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#how-it-works"><span class="toc-number">2.</span> <span class="toc-text">how it works</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#how-to-implement-vectorization"><span class="toc-number">3.</span> <span class="toc-text">how to implement vectorization</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/" target="_blank" rel="noopener"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/&text=大白话LR" target="_blank" rel="noopener"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/&title=大白话LR" target="_blank" rel="noopener"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/&is_video=false&description=大白话LR" target="_blank" rel="noopener"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=大白话LR&body=Check out this article: http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/&title=大白话LR" target="_blank" rel="noopener"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/&title=大白话LR" target="_blank" rel="noopener"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/&title=大白话LR" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/&title=大白话LR" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/&name=大白话LR&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://yoursite.com/2014/03/14/2014-03-14-da-bai-hua-lr/&t=大白话LR" target="_blank" rel="noopener"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2013-2020
+    Zheng Jihui
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="http://zjhmale.github.io" target="_blank" rel="noopener">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/zjhmale" target="_blank" rel="noopener">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+
+    <!-- jquery -->
+
+<script src="/lib/jquery/jquery.min.js"></script>
+
+
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+
+<!-- clipboard -->
+
+  
+<script src="/lib/clipboard/clipboard.min.js"></script>
+
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Disqus Comments --><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+</body>
+</html>

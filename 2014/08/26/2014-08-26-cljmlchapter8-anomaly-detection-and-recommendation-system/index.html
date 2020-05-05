@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- hexo-inject:begin --><!-- hexo-inject:end --><!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="构建推荐系统推荐系统是一种信息过滤系统，这种信息过滤系统的目标使为用户提供有效的推荐信息。为了确定这些要推荐的信息和内容，一个推荐系统可以利用并分析某一个用户的历史行为来对某一个用户进行推荐，也可以利用对给定用户相似的用户的行为进行分析进而对给定用户进行推荐(更多信息，可以参考”A Taxonomy of Recommender Agents on the Internet”这篇论文)。以上两种方">
+<meta property="og:type" content="article">
+<meta property="og:title" content="cljmlchapter8-Anomaly Detection and Recommendation System">
+<meta property="og:url" content="http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/index.html">
+<meta property="og:site_name" content="">
+<meta property="og:description" content="构建推荐系统推荐系统是一种信息过滤系统，这种信息过滤系统的目标使为用户提供有效的推荐信息。为了确定这些要推荐的信息和内容，一个推荐系统可以利用并分析某一个用户的历史行为来对某一个用户进行推荐，也可以利用对给定用户相似的用户的行为进行分析进而对给定用户进行推荐(更多信息，可以参考”A Taxonomy of Recommender Agents on the Internet”这篇论文)。以上两种方">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://yoursite.com/images/cljml/chap8/image1.png">
+<meta property="og:image" content="http://yoursite.com/images/cljml/chap8/image2.png">
+<meta property="article:published_time" content="2014-08-26T01:44:20.000Z">
+<meta property="article:modified_time" content="2020-05-05T11:48:41.248Z">
+<meta property="article:author" content="Zheng Jihui">
+<meta property="article:tag" content="Clojure">
+<meta property="article:tag" content="Machine Learning">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/images/cljml/chap8/image1.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>cljmlchapter8-Anomaly Detection and Recommendation System</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+      
+<link rel="stylesheet" href="/css/rtl.css">
+
+    
+    <!-- rss -->
+    
+    
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <!-- hexo-inject:begin --><!-- hexo-inject:end --><div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="http://zjhmale.github.io" target="_blank" rel="noopener">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/zjhmale" target="_blank" rel="noopener">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2020/05/05/some-thoughts-on-distributed-computing-and-grid-computing/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2014/08/23/2014-08-23-cljmlchapter7-clustering-data/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/" target="_blank" rel="noopener"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/&text=cljmlchapter8-Anomaly Detection and Recommendation System" target="_blank" rel="noopener"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/&title=cljmlchapter8-Anomaly Detection and Recommendation System" target="_blank" rel="noopener"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/&is_video=false&description=cljmlchapter8-Anomaly Detection and Recommendation System" target="_blank" rel="noopener"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=cljmlchapter8-Anomaly Detection and Recommendation System&body=Check out this article: http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/&title=cljmlchapter8-Anomaly Detection and Recommendation System" target="_blank" rel="noopener"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/&title=cljmlchapter8-Anomaly Detection and Recommendation System" target="_blank" rel="noopener"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/&title=cljmlchapter8-Anomaly Detection and Recommendation System" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/&title=cljmlchapter8-Anomaly Detection and Recommendation System" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/&name=cljmlchapter8-Anomaly Detection and Recommendation System&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/&t=cljmlchapter8-Anomaly Detection and Recommendation System" target="_blank" rel="noopener"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#构建推荐系统"><span class="toc-number">1.</span> <span class="toc-text">构建推荐系统</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#基于内容过滤"><span class="toc-number">2.</span> <span class="toc-text">基于内容过滤</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#协同过滤"><span class="toc-number">3.</span> <span class="toc-text">协同过滤</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#使用Slope-One算法"><span class="toc-number">4.</span> <span class="toc-text">使用Slope One算法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#本章概要"><span class="toc-number">5.</span> <span class="toc-text">本章概要</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        cljmlchapter8-Anomaly Detection and Recommendation System
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name"></span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2014-08-26T01:44:20.000Z" itemprop="datePublished">2014-08-26</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link" href="/tags/Clojure/" rel="tag">Clojure</a>, <a class="tag-link" href="/tags/Machine-Learning/" rel="tag">Machine Learning</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="构建推荐系统"><a href="#构建推荐系统" class="headerlink" title="构建推荐系统"></a>构建推荐系统</h2><p>推荐系统是一种信息过滤系统，这种信息过滤系统的目标使为用户提供有效的推荐信息。为了确定这些要推荐的信息和内容，一个推荐系统可以利用并分析某一个用户的历史行为来对某一个用户进行推荐，也可以利用对给定用户相似的用户的行为进行分析进而对给定用户进行推荐(更多信息，可以参考”A Taxonomy of Recommender Agents on the Internet”这篇论文)。以上两种方法其实体现了两类用于构建推荐系统的推荐算法的基本思想-<strong>基于内容过滤(content-based filtering)</strong>与<strong>协同过滤(collaborative filtering)</strong>。有趣的是，一些推荐系统甚至组合使用这两种推荐技术，从而更好地为用户推荐内容。这两种推荐技术都是为用户推荐物件或者是在一个以用户为中心的应用系统中为用户推荐由这个应用系统管理的内容或者可以在这个应用系统中进行交换的物品。这一类应用系统一般包括一些线上网站为用户提供一些在线的内容和信息，比如一些在线购物网站和一些在线媒体网站。</p>
+<p>在基于内容过滤的推荐系统中，推荐的操作是得到待推荐用户对于操作过的一系列的物品的偏好列表，然后选出其中用户最喜欢的前几个物品，分析这几个物品的内容，然后为用户推荐和这几个物品类似的物品，从而完成推荐行为。每一个物品都对应一个含有多个特征值的特征向量，用来描述给定物品，并且多个用户可以对同一个物品有操作行为以及偏好值。因此每一个用户都对应了好几组特征向量用来表示用户有操作行为的物品，以及一个输出向量，用来表示用户对各个操作过的物品的喜好程度。在进行推荐过程中，通过计算特征向量的内积值来得到内容相似的物品，然后得到和用户喜欢的物品内容相近的物品推荐给用户，这就是基于内容过滤的推荐模型的基本思想。</p>
+<p>协同过滤方法则不依赖于物品具体的内容，而是通过收集给定用户群中每个用户的行为，活动以及偏好数据，并且利用这信息来推荐物品给用户。这种推荐方法是基于将具有类似操作行为的用户之间具有较高偏好值的物品相互推荐。实际上，在协同过滤中对于一个用户的推荐行为是基于这个用户的历史行为数据以及具有类似行为的用户来决定的，这种寻找相似用户，然后在相似用户之间相互推荐偏好值较高的物品的行为是协同过滤方法中的基于用户的协同过滤方法的基本思想。协同过滤技术也会根据所有用户的行为与偏好来确定系统中所有可用的物品的特征，然后会将具有相似特征的物品推荐给对这一类物品具有较高偏好值的用户，这种寻找相似物品，然后将相似物品推荐给对这一类物品感兴趣的用户的行为是协同过滤方法中基于物品的协同过滤方法的基本思想。</p>
+<h2 id="基于内容过滤"><a href="#基于内容过滤" class="headerlink" title="基于内容过滤"></a>基于内容过滤</h2><p>如之前所述，基于内容过滤的推荐系统利用用户的历史行为确定一个用户的偏好列表，然后为用户推荐与偏好值较高的物品内容类似的物品。此外我们也可以考虑用户对应的偏好值较低的物品，可以知道用户不喜欢哪一些类型的物品。下面我们来换一个思路考虑这个问题，一个物品使用一些离散的特征值组成的特征向量来表示。这个特征向量和之前提到的分类模型或者是一个基于线性回归的机器学习模型的输入值向量很类似，都是用来描述一个客观存在的事物，在分类与回归机器学习模型中代表一个样本，而在我们现在讨论的基于内容过滤的推荐系统中代表了一个可以被用来推荐的物品。</p>
+<p>例如，设想我们想要建立一个使用基于内容过滤的推荐系统来为用户推荐在线商品。每一个商品都可以通过几种已知的特征来表征和识别。并且每一个用户可以对商品有一个偏好值，当然并不是对所有的商品。每一个表征商品的特征向量中的每一个特征值是在<script type="math/tex">[0, 10]</script>的范围内。而用户对商品的偏好值则是在<script type="math/tex">[0, 5]</script>范围内。我们可以将这个推荐系统中的所有样本数据以表格形式展示出来，如下表所示：</p>
+<center>
+    <img src="/images/cljml/chap8/image1.png">
+</center>
+
+<p>如上面的表格所示，这个推荐系统有<script type="math/tex">n</script>个商品以及<script type="math/tex">U</script>个用户。每一个商品中都有<script type="math/tex">N</script>个数值范围在<script type="math/tex">[0, 10]</script>内的特征，而且每一个商品都可能会有多个用户对其产生行为并产生一个偏好值。让我们定义用户<script type="math/tex">u</script>对商品<script type="math/tex">i</script>的偏好值为<script type="math/tex">Y_{u, i}</script>，其中商品<script type="math/tex">i</script>可以使用一个特征向量来描述，如下所示：</p>
+<script type="math/tex; mode=display">X_{i} = \begin{bmatrix}
+x_{i, 1} & x_{i, 2} & \cdots & x_{i, N}
+\end{bmatrix}</script><p>而有时候可能用户<script type="math/tex">u</script>并没有对商品<script type="math/tex">i</script>发生过交互行为，没有产生一个偏好值，那么<script type="math/tex">Y_{u, i}</script>自然是空值，而此时我们就需要去预测这些空值可能的值，如果这个预测值很高就将这个为交互的物品推荐给用户。为了做到这一点，我们需要构造一个权值向量<script type="math/tex">\beta_{u}</script>。因此此时在基于内容过滤的推荐系统中实际上是使用了一个线性回归模型，其中每一个用户都对应一个线性回归，使用有交互行为并且产生偏好值的商品的样本信息作为线性回归的训练数据集，其中商品的特征向量<script type="math/tex">X_{i}</script>作为自变量，而用户对商品的偏好值<script type="math/tex">Y_{u, i}</script>则为因变量。训练完之后就可以得到学习后的权值向量<script type="math/tex">\beta_{u}</script>，此时将偏好值为空的商品的特征向量<script type="math/tex">\hat{X_{i}}</script>传入从而得到预测的偏好值<script type="math/tex">{\hat{Y_{u, i}}}</script>，进而根据这个预测出的偏好值来决定是否要将为交互的商品推荐给用户。因此基于内容过滤的推荐系统需要解决的最优化问题可以形式化地表述如下：</p>
+<script type="math/tex; mode=display">\begin{align*}
+& \underset{\beta_{u}}{arg \; min} \left [ \sum_{i:r(i,u) = 1}\left ( (\beta_{u})^{T}X_{i} - Y_{u, i} \right )^{2} + \frac{\lambda}{2}\sum_{j=1}^{N}\beta_{u, j}^{2} \right ] \\
+\\
+& 其中用户u对商品有交互时 \; r(i, u) = 1 \; 否则 \; r(i, u) = 0 \\
+& \beta_{u, j}表示向量\beta_{u}的第j个元素
+\end{align*}</script><p>上面等式中描述的最优化问题可以被推广到推荐系统中的所有用户上，对于<script type="math/tex">U</script>个用户的最优化问题可以形式化地表述如下：</p>
+<script type="math/tex; mode=display">\underset{\beta_{1}, \beta_{2}, \cdots, \beta{u}}{arg \; min} \left [ \sum_{u=1}^{U}\sum_{i:r(i,u) = 1}\left ( (\beta_{u})^{T}X_{i} - Y_{u, i} \right )^{2} + \frac{\lambda}{2}\sum_{u=1}^{U}\sum_{j=1}^{N}\beta_{u, j}^{2} \right ]</script><p>简单的来说，权值向量<script type="math/tex">\beta</script>试图去伸缩或者变换输入的特征向量来匹配模型中的输出偏好值。上面公式中的第二个求和项是为了正则化，避免模型在训练过程中过拟合。有趣的是，上面等式定义的最优化问题和线性回归非常类似，因此这种思路来设计的基于内容过滤的推荐系统也可以认为是线性回归模型的一种扩展和应用。</p>
+<p>所以基于内容过滤的推荐系统需要解决的最关键的问题就是能否从用户的行为和偏好中学习出有价值的信息。我们可以直接从用户那里得到反馈，知道用户对商品的评分和偏好，也可以通过分析用户的历史行为来预测这些偏好值。此外，如果对一组用户和一组与给定用户有交互行为但是在特定类别中的商品来训练好的基于内容过滤的推荐系统一般是没有办法有效地为同样的用户推荐不同类别的商品的，例如，假如我们利用用户对新闻的偏好来训练了一个推荐新闻内容的推荐系统，那么这个推荐系统将很难预测用户对于线上商品的喜好程度，也就很难为用户推荐线上商品。</p>
+<h2 id="协同过滤"><a href="#协同过滤" class="headerlink" title="协同过滤"></a>协同过滤</h2><p>另一种在推荐系统中主要用到的模型是协同过滤，这种推荐算法会分析用户和商品的样本数据，进而区分出有相同喜好的用户，并在有相同喜好的用户之间相互推荐评分高的商品，也可以区分出不同类别的商品，并且为用户推荐其喜欢物品类型中的类似物品，注意这个算法和基于内容过滤推荐的一个很显著的区别就是推荐系统不需要知道商品里具体的内容，而只是通过用户对商品的偏好程度的数据来对用户和商品进行聚类。这也正是协同过滤最主要的优势，不需要依赖于物品的内容，因此也就不需要利用物品的内容来构造描述物品的特征向量，因为有时候从物品内容中提取特征并不能完全保证可以很正确的描述物品。在协同过滤中物品的特征实际上是动态地由系统中用户对这些物品交互的行为以及偏好值数据来决定的。我们会在本节的后面部分更详细地讨论协同过滤算法的这种优势。</p>
+<p>在使用协同过滤算法时，一个最主要最本质的部分就是要确定系统中用户对物品的偏好值或者评分值。为了要解决这个模型中最本质的部分，我们可以用下面具体的步骤来确定系统中用户对物品的偏好值或者评分制：</p>
+<ul>
+<li>给用户一个评分范围，直接让用户自己对各个交互过的物品进行打分</li>
+<li>让用户标记出哪些是喜欢的物品</li>
+<li>向用户展示一些物品，然后让用户根据喜好程度对这些物品进行排序</li>
+<li>让用户建立一个喜欢物品的表单，或者是喜欢物品类型的表单</li>
+</ul>
+<p>此外，如果显示地直接询问客户不太合适，也可以通过收集和分析用户历史行为来隐式地得到用户的喜好。这种分析用户喜好的方法也有大致如下几个步骤：</p>
+<ul>
+<li>收集用户所有浏览过的物品</li>
+<li>分析用户浏览每一个物品的次数，从而得到用户的偏好</li>
+<li>分析用户的社交网络，从而找到和用户喜好类似的用户，假如喜好的类似的用户中有已经确立了对物品偏好数据的用户，那可以近似作为给定用户的偏好数据。</li>
+</ul>
+<p>例如，以上面章节中提到的针对在线购物商品构建推荐系统的应用场景为例。我们可以使用协同过滤来动态地确定所有在售的物品的特征值，并且预测给定用户可能会感兴趣的物品。我们可以用下面的表格来展示这个推荐系统中使用的所有样本数据：</p>
+<center>
+    <img src="/images/cljml/chap8/image2.png">
+</center>
+
+<p>在上面的表格中，我们可以看到所有物品的特征是事先不知道的，唯一能确定的数据就是一部分用户对一部分物品的偏好值，以及用户的行为模型。</p>
+<p>使用协同过滤算法分析一个物品的所有特征要解决的最优化问题可以形式化地表述如下：</p>
+<script type="math/tex; mode=display">\begin{align*}
+& \underset{X_{i}}{arg \; min} \left [ \sum_{u:r(i, u)=1}\left ( (\beta_{u})^{T}X_{i} - Y_{u, i} \right )^{2} + \frac{\lambda}{2}\sum_{j=1}^{N}X_{i, j}^{2} \right ] \\
+& 其中X_{i, j}表示向量X_{i}的第j个元素
+\end{align*}</script><p>上面等式描述的最优化问题似乎与我们在讨论基于内容过滤的推荐算法时要解决的最优化问题正好相反。在协同过滤的最优化问题中不再去估计用户的行为模型<script type="math/tex">\beta_{u}</script>，而是去估计物品的特征向量<script type="math/tex">X_{i}</script>中的值。类似的，我们也可以将上述等式描述的最优化问题扩展到多个物品的层面上：</p>
+<script type="math/tex; mode=display">\underset{X_{1}, X_{2}, \cdots, X_{n}}{arg \; min}\left [ \sum_{i=1}^{n}\sum_{u:r(i, u)=1}\left ( (\beta_{u})^{T}X_{i} - Y_{u, i} \right )^{2} + \frac{\lambda}{2}\sum_{i=1}^{n}\sum_{j=1}^{N}X_{i, j}^{2} \right ]</script><p>使用协同过滤，我们就可以来估计商品的特征向量<script type="math/tex">X_{1}, X_{2}, \cdots, X_{n}</script>，当得到了预估的物品特征向量之后我们还可以反过来改进用户的行为模型<script type="math/tex">\beta_{1}, \beta_{2}, \cdots, \beta_{U}</script>，然后又可以利用新改进的用户模型再次得到一组估计的物品特征向量，这个交替更新的过程会一直迭代直到物品的特征向量中的值和用户的行为模型中的值能收敛到一个比较合适的范围内。</p>
+<blockquote>
+<p>需要注意的是，在上面的更新过程中，推荐算法并不需要知道每一个物品的初始特征向量中的确切初始值因为随着算法的不断迭代，最终这些特征向量中的值会收敛在一个局部最优的位置，但是推荐算法需要知道的是每一个用户的行为模型的初始值，这些初始值可以是和已经利用基于内容过滤得到的用户行为模型的用户之间进行聚类从而近似的得到一个行为模型的初始值，在确定了初始的用户行为模型后才能开始算法的迭代，最终才能为用户提供有用的推荐信息。</p>
+</blockquote>
+<p>协同过滤同样可以和基于内容过滤的推荐算法组合使用，这种推荐方式也称作<strong>混合方法(hybrid methods)</strong>。我们有多重形式来组合或者混合使用这两种推荐模型，如下面所示：</p>
+<ul>
+<li>可以将协同过滤和基于内容过滤两种推荐模型的结果求取数值上的加权平均，当然这里指的是用户对物品的偏好值</li>
+<li>可以在适当的情况下，选择这两种模型的其中之一用来构建推荐系统</li>
+<li>将这两种模型得到的推荐见过都展示给用户看</li>
+</ul>
+<p>上文中提到的协同过滤模型是一种最简单的协同过滤模型，现在业界比较流行的是基于矩阵奇异值分解(SVD)的协同过滤算法，利用SVD的好处是对于评分矩阵很稀疏，而且又无法有效的得到用户行为模型的情况下，可以较准确地获得每一个用户的行为模型与物品的特征向量。有兴趣的读者可以寻找一些相关的论文和资料学习，因为本书并不是一本专门讲推荐系统的书籍，所以在此不再赣述了。</p>
+<h2 id="使用Slope-One算法"><a href="#使用Slope-One算法" class="headerlink" title="使用Slope One算法"></a>使用Slope One算法</h2><h2 id="本章概要"><a href="#本章概要" class="headerlink" title="本章概要"></a>本章概要</h2>
+  </div>
+</article>
+
+
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="http://zjhmale.github.io" target="_blank" rel="noopener">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/zjhmale" target="_blank" rel="noopener">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#构建推荐系统"><span class="toc-number">1.</span> <span class="toc-text">构建推荐系统</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#基于内容过滤"><span class="toc-number">2.</span> <span class="toc-text">基于内容过滤</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#协同过滤"><span class="toc-number">3.</span> <span class="toc-text">协同过滤</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#使用Slope-One算法"><span class="toc-number">4.</span> <span class="toc-text">使用Slope One算法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#本章概要"><span class="toc-number">5.</span> <span class="toc-text">本章概要</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/" target="_blank" rel="noopener"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/&text=cljmlchapter8-Anomaly Detection and Recommendation System" target="_blank" rel="noopener"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/&title=cljmlchapter8-Anomaly Detection and Recommendation System" target="_blank" rel="noopener"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/&is_video=false&description=cljmlchapter8-Anomaly Detection and Recommendation System" target="_blank" rel="noopener"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=cljmlchapter8-Anomaly Detection and Recommendation System&body=Check out this article: http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/&title=cljmlchapter8-Anomaly Detection and Recommendation System" target="_blank" rel="noopener"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/&title=cljmlchapter8-Anomaly Detection and Recommendation System" target="_blank" rel="noopener"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/&title=cljmlchapter8-Anomaly Detection and Recommendation System" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/&title=cljmlchapter8-Anomaly Detection and Recommendation System" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/&name=cljmlchapter8-Anomaly Detection and Recommendation System&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://yoursite.com/2014/08/26/2014-08-26-cljmlchapter8-anomaly-detection-and-recommendation-system/&t=cljmlchapter8-Anomaly Detection and Recommendation System" target="_blank" rel="noopener"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2013-2020
+    Zheng Jihui
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="http://zjhmale.github.io" target="_blank" rel="noopener">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/zjhmale" target="_blank" rel="noopener">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+
+    <!-- jquery -->
+
+<script src="/lib/jquery/jquery.min.js"></script>
+
+
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+
+<!-- clipboard -->
+
+  
+<script src="/lib/clipboard/clipboard.min.js"></script>
+
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Disqus Comments --><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+</body>
+</html>

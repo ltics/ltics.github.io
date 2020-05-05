@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- hexo-inject:begin --><!-- hexo-inject:end --><!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="lazy evaluation首先申明，clojure并不是一个惰性语言，关于惰性可以参考wiki 惰性计算是call-by-need的，也就是表达式的值只有在上下文中用到的时候才会被求值。非惰性的语言叫做eager language，一个典型的非惰性语言也可以表现出一些惰性的性质，比如在if操作中 1if a then b else c 首先会对表达式a求值，然后加入求值得到的结果是true，那">
+<meta property="og:type" content="article">
+<meta property="og:title" content="laziness in clojure">
+<meta property="og:url" content="http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/index.html">
+<meta property="og:site_name" content="">
+<meta property="og:description" content="lazy evaluation首先申明，clojure并不是一个惰性语言，关于惰性可以参考wiki 惰性计算是call-by-need的，也就是表达式的值只有在上下文中用到的时候才会被求值。非惰性的语言叫做eager language，一个典型的非惰性语言也可以表现出一些惰性的性质，比如在if操作中 1if a then b else c 首先会对表达式a求值，然后加入求值得到的结果是true，那">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2013-07-19T01:44:20.000Z">
+<meta property="article:modified_time" content="2020-05-05T11:47:23.558Z">
+<meta property="article:author" content="Zheng Jihui">
+<meta property="article:tag" content="Clojure">
+<meta property="article:tag" content="Functional Programming">
+<meta name="twitter:card" content="summary">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>laziness in clojure</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+      
+<link rel="stylesheet" href="/css/rtl.css">
+
+    
+    <!-- rss -->
+    
+    
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <!-- hexo-inject:begin --><!-- hexo-inject:end --><div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="http://zjhmale.github.io" target="_blank" rel="noopener">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/zjhmale" target="_blank" rel="noopener">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2013/05/13/2013-05-13-destructure-in-clojure/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/" target="_blank" rel="noopener"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/&text=laziness in clojure" target="_blank" rel="noopener"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/&title=laziness in clojure" target="_blank" rel="noopener"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/&is_video=false&description=laziness in clojure" target="_blank" rel="noopener"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=laziness in clojure&body=Check out this article: http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/&title=laziness in clojure" target="_blank" rel="noopener"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/&title=laziness in clojure" target="_blank" rel="noopener"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/&title=laziness in clojure" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/&title=laziness in clojure" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/&name=laziness in clojure&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/&t=laziness in clojure" target="_blank" rel="noopener"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#lazy-evaluation"><span class="toc-number">1.</span> <span class="toc-text">lazy evaluation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#惰性序列"><span class="toc-number">2.</span> <span class="toc-text">惰性序列</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#构造惰性序列"><span class="toc-number">3.</span> <span class="toc-text">构造惰性序列</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#唤醒惰性序列-强制求值"><span class="toc-number">4.</span> <span class="toc-text">唤醒惰性序列(强制求值)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#用来产生惰性序列的函数操作"><span class="toc-number">5.</span> <span class="toc-text">用来产生惰性序列的函数操作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#惰性序列分块"><span class="toc-number">6.</span> <span class="toc-text">惰性序列分块</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        laziness in clojure
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name"></span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2013-07-19T01:44:20.000Z" itemprop="datePublished">2013-07-19</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link" href="/tags/Clojure/" rel="tag">Clojure</a>, <a class="tag-link" href="/tags/Functional-Programming/" rel="tag">Functional Programming</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="lazy-evaluation"><a href="#lazy-evaluation" class="headerlink" title="lazy evaluation"></a>lazy evaluation</h2><p>首先申明，<code>clojure</code>并不是一个<code>惰性语言</code>，关于惰性可以参考<a href="http://en.wikipedia.org/wiki/Lazy_evaluation" target="_blank" rel="noopener">wiki</a></p>
+<p>惰性计算是<code>call-by-need</code>的，也就是表达式的值只有在上下文中用到的时候才会被求值。非惰性的语言叫做<code>eager language</code>，一个典型的非惰性语言也可以表现出一些惰性的性质，比如在<code>if</code>操作中</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> a <span class="keyword">then</span> b <span class="keyword">else</span> c</span><br></pre></td></tr></table></figure>
+<p>首先会对表达式<code>a</code>求值，然后加入求值得到的结果是<code>true</code>，那么就会对表达式<code>b</code>求值，否则就会对<code>c</code>求值。也就是说表达式<code>b</code>和<code>c</code>永远只有一个能被求值。相反的，还有一种在非惰性语言中很常见的情况就是</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">define f(x, y) = <span class="number">2</span> * x</span><br><span class="line">set k = f(d, e)</span><br></pre></td></tr></table></figure>
+<p>当需要用到k的值的时候，表达式<code>d</code>和<code>e</code>都会被求值，即使表示<code>e</code>的值永远不会被用到</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">define g(a, b, c) = <span class="keyword">if</span> a <span class="keyword">then</span> b <span class="keyword">else</span> c</span><br><span class="line">l = g(h, i, j)</span><br></pre></td></tr></table></figure>
+<p>表达式<code>i</code>和<code>j</code>依然会都被求值</p>
+<p>只有在</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">l<span class="string">' = if h then i else j</span></span><br></pre></td></tr></table></figure>
+<p><code>i</code>和<code>j</code>才会只有其中一个能被求值</p>
+<p>可以看到如果没有惰性求值的话我们将会有多少多余的计算，但是如果把惰性计算发挥到极致，像haskell那样，以至于影响到了语言的执行顺序甚至是执行效率，那有点过了，这里没有抨击haskell的意思，haskell很严谨，这也是这个教派追求的东西，所以世间没有银弹嗯。当然惰性计算除了可以减少很多不必要的计算之外，最牛逼的特性就是你可以存储一个无限大的数据结构，这在<code>clojure</code>中也是司空见惯的，下面以人人都会的<code>python</code>为例。</p>
+<ul>
+<li>在python2.x中，<code>range()</code>这个函数是非惰性的</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">r = range(<span class="number">10</span>)</span><br><span class="line"><span class="keyword">print</span> r</span><br><span class="line"><span class="comment"># =&gt; [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]</span></span><br><span class="line"><span class="keyword">print</span> r[<span class="number">3</span>]</span><br><span class="line"><span class="comment"># =&gt; 3</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>在python3.x中，<code>range()</code>这个函数被修改为惰性的了</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">r = range(<span class="number">10</span>)</span><br><span class="line">print(r)</span><br><span class="line"><span class="comment"># =&gt; range(0, 10)</span></span><br><span class="line">print(r[<span class="number">3</span>])</span><br><span class="line"><span class="comment"># =&gt; 3</span></span><br></pre></td></tr></table></figure>
+<p>当然在py2中也可通过一些比较<code>hack</code>的方式得到一个惰性序列</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">list = range(<span class="number">10</span>)</span><br><span class="line">iterator = iter(list)</span><br><span class="line"><span class="keyword">print</span> list</span><br><span class="line"><span class="comment"># =&gt; [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]</span></span><br><span class="line"><span class="keyword">print</span> iterator</span><br><span class="line"><span class="comment"># =&gt; &lt;listiterator object at 0xf7e8dd4c&gt;</span></span><br><span class="line"><span class="keyword">print</span> iterator.next()</span><br><span class="line"><span class="comment"># =&gt; 0</span></span><br></pre></td></tr></table></figure>
+<p>可以看到这个无限大的数据结构其实就是一个<code>lazy sequence</code>，一个惰性序列可以认为是扔出来了一个<code>object</code>，从这个惰性序列中我们可以取到我们需要得到值，这些值只有在我们需要，我们去拿的时候才会被计算出来，从上面的例子中也可以看到如果没有惰性序列，那么一个序列中的所有元素都要先被求值一次然后放置到内存中，这对于内存资源是一种浪费</p>
+<h2 id="惰性序列"><a href="#惰性序列" class="headerlink" title="惰性序列"></a>惰性序列</h2><p>虽然<code>clojure</code>不是惰性语言，但是<code>clojure</code>支持惰性序列。就像上面提到的那样，惰性序列主要有以下两个牛逼的特性</p>
+<ul>
+<li>它们可以以无穷大的形式存在于内存中</li>
+<li>一个序列的任何元素直到要被拿出来做其他计算使用时才会被求值，不然就一直存在于内存中</li>
+</ul>
+<h2 id="构造惰性序列"><a href="#构造惰性序列" class="headerlink" title="构造惰性序列"></a>构造惰性序列</h2><p>惰性序列是利用函数构造的。我们既可以用<code>clojure.core/lazy-seq</code>这样的宏来产生一个惰性序列，或者直接使用能产生惰性序列的函数。</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">defn</span></span> uuid-seq</span><br><span class="line">  []</span><br><span class="line">  (<span class="name"><span class="builtin-name">lazy-seq</span></span></span><br><span class="line">   (<span class="name"><span class="builtin-name">cons</span></span> (<span class="name"><span class="builtin-name">str</span></span> (<span class="name">UUID/randomUUID</span>))</span><br><span class="line">         (<span class="name">uuid-seq</span>))))</span><br></pre></td></tr></table></figure>
+<p><code>UUID</code>即<code>UniversallyUniqueIdentifier</code>表示一种全局唯一的标识，<code>uuid-seq</code>这个函数利用递归深度嵌套了一个惰性序列。另一个例子</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">defn</span></span> fib-seq</span><br><span class="line">  ([]</span><br><span class="line">     (<span class="name">fib-seq</span> <span class="number">0</span> <span class="number">1</span>))</span><br><span class="line">  ([a b]</span><br><span class="line">     (<span class="name"><span class="builtin-name">lazy-seq</span></span></span><br><span class="line">      (<span class="name"><span class="builtin-name">cons</span></span> b (<span class="name">fib-seq</span> b (<span class="name"><span class="builtin-name">+</span></span> a b))))))</span><br></pre></td></tr></table></figure>
+<p><code>fib-seq</code>函数用来产生一个惰性的<code>fibonacci</code>数列。上面那两个例子都是用了<code>clojure.core/cons</code>函数来将一个元素插入到一个序列的头部。然后这个序列被转换为惰性的。</p>
+<p>虽然惰性序列是无限的，但是我们可以从中选取我们需要的元素</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">take</span></span> <span class="number">3</span> (<span class="name">uuid-seq</span>))</span><br><span class="line"><span class="comment">;= ("8da1b70e-7d4d-4972-b4af-48ed248c5568" "b0bc5c2c-f5ff-4733-b3ce-b0499a1a0ccc" "26d52a65-cde5-4d57-bf7f-97e3440fb3a5")</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">take</span></span> <span class="number">10</span> (<span class="name">fib-seq</span>))</span><br><span class="line">l= (1 1 2 3 5 8 13 21 34 55)</span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">take</span></span> <span class="number">20</span> (<span class="name">fib-seq</span>))</span><br><span class="line"><span class="comment">;= (1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987 1597 2584 4181 6765)</span></span><br></pre></td></tr></table></figure>
+<h2 id="唤醒惰性序列-强制求值"><a href="#唤醒惰性序列-强制求值" class="headerlink" title="唤醒惰性序列(强制求值)"></a>唤醒惰性序列(强制求值)</h2><p>如果想强制唤醒一个惰性序列，可以使用<code>clojure.core/dorun</code>或者<code>clojure.core/doall</code>，这两个函数的区别在于<code>dorun</code>不会返回计算的结果，一般用来做有副作用的操作，而<code>doall</code>会返回求值的结果。</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">class</span></span> (<span class="name"><span class="builtin-name">map</span></span> println [<span class="number">1</span> <span class="number">2</span> <span class="number">3</span>]))</span><br><span class="line"><span class="comment">;=clojure.lang.LazySeq</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">map</span></span> println [<span class="number">1</span> <span class="number">2</span> <span class="number">3</span>])</span><br><span class="line"><span class="comment">;=(1</span></span><br><span class="line"><span class="comment">;2</span></span><br><span class="line"><span class="comment">;3</span></span><br><span class="line"><span class="comment">;nil nil nil)</span></span><br></pre></td></tr></table></figure>
+<p>可以看到map返回的就是一个惰性序列，如果没有额外的操作，副作用的操作是会被包含在这个惰性序列中，而不是将副作用作用在外部环境，这的确符合函数式的思想，但是这不符合一些从其他语言入门编程的人的即有三观。</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">dorun</span></span> (<span class="name"><span class="builtin-name">map</span></span> inc [<span class="number">1</span> <span class="number">2</span> <span class="number">3</span> <span class="number">4</span>]))</span><br><span class="line"><span class="comment">;= nil</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">doall</span></span> (<span class="name"><span class="builtin-name">map</span></span> inc [<span class="number">1</span> <span class="number">2</span> <span class="number">3</span> <span class="number">4</span>]))</span><br><span class="line"><span class="comment">;= (2 3 4 5)</span></span><br></pre></td></tr></table></figure>
+<p>上面的这个例子可能还不够深刻</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">doall</span></span> (<span class="name"><span class="builtin-name">map</span></span> println [<span class="number">1</span> <span class="number">2</span> <span class="number">3</span>]))</span><br><span class="line"><span class="comment">;1</span></span><br><span class="line"><span class="comment">;2</span></span><br><span class="line"><span class="comment">;3</span></span><br><span class="line"><span class="comment">;=(nil nil nil)</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">dorun</span></span> (<span class="name"><span class="builtin-name">map</span></span> println [<span class="number">1</span> <span class="number">2</span> <span class="number">3</span>]))</span><br><span class="line"><span class="comment">;1</span></span><br><span class="line"><span class="comment">;2</span></span><br><span class="line"><span class="comment">;3</span></span><br><span class="line"><span class="comment">;=nil</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">doall</span></span> (<span class="name"><span class="builtin-name">map</span></span> #(<span class="name">println</span> <span class="string">"hi"</span> %) [<span class="string">"mum"</span> <span class="string">"dad"</span> <span class="string">"sister"</span>]))</span><br><span class="line"><span class="comment">;1</span></span><br><span class="line"><span class="comment">;2</span></span><br><span class="line"><span class="comment">;3</span></span><br><span class="line"><span class="comment">;=(nil nil nil)</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">dorun</span></span> (<span class="name"><span class="builtin-name">map</span></span> #(<span class="name">println</span> <span class="string">"hi"</span> %) [<span class="string">"mum"</span> <span class="string">"dad"</span> <span class="string">"sister"</span>]))</span><br><span class="line"><span class="comment">;hi mum</span></span><br><span class="line"><span class="comment">;hi dad</span></span><br><span class="line"><span class="comment">;hi sister</span></span><br><span class="line"><span class="comment">;=nil</span></span><br></pre></td></tr></table></figure>
+<p>上面两组例子应该已经很好的讲清楚了两个函数的异同了，当用于产生惰性序列的函数中存在副作用(side effect)，那么就可以使用这两个函数来符合一般人三观地执行副作用，不同的是<code>doall</code>会返回最终的惰性序列，但是<code>dorun</code>始终返回<code>nil</code>。</p>
+<h2 id="用来产生惰性序列的函数操作"><a href="#用来产生惰性序列的函数操作" class="headerlink" title="用来产生惰性序列的函数操作"></a>用来产生惰性序列的函数操作</h2><p><code>clojure.core</code>中常见的返回惰性序列的函数有</p>
+<ul>
+<li><code>map</code></li>
+<li><code>filter</code></li>
+<li><code>remove</code></li>
+<li><code>range</code></li>
+<li><code>take</code></li>
+<li><code>take-while</code></li>
+<li><code>drop</code></li>
+<li><code>drop-while</code></li>
+</ul>
+<p>可以看一个取数的简单例子</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">take</span></span> <span class="number">10</span> (<span class="name"><span class="builtin-name">filter</span></span> even? (<span class="name"><span class="builtin-name">range</span></span> <span class="number">0</span> <span class="number">100</span>)))</span><br><span class="line"><span class="comment">;= (0 2 4 6 8 10 12 14 16 18)</span></span><br></pre></td></tr></table></figure>
+<p>在<code>clojure.core</code>中还有一些专门用来产生惰性序列的函数</p>
+<ul>
+<li><code>repeat</code></li>
+<li><code>iterate</code></li>
+<li><code>cycle</code></li>
+</ul>
+<p>例如</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">take</span></span> <span class="number">3</span> (<span class="name"><span class="builtin-name">repeat</span></span> <span class="string">"ha"</span>))</span><br><span class="line"><span class="comment">;= ("ha" "ha" "ha")</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">take</span></span> <span class="number">5</span> (<span class="name"><span class="builtin-name">repeat</span></span> <span class="string">"ha"</span>))</span><br><span class="line"><span class="comment">;= ("ha" "ha" "ha" "ha" "ha")</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">take</span></span> <span class="number">3</span> (<span class="name"><span class="builtin-name">cycle</span></span> [<span class="number">1</span> <span class="number">2</span> <span class="number">3</span> <span class="number">4</span> <span class="number">5</span>]))</span><br><span class="line"><span class="comment">;= (1 2 3)</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">take</span></span> <span class="number">10</span> (<span class="name"><span class="builtin-name">cycle</span></span> [<span class="number">1</span> <span class="number">2</span> <span class="number">3</span> <span class="number">4</span> <span class="number">5</span>]))</span><br><span class="line"><span class="comment">;= (1 2 3 4 5 1 2 3 4 5)</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">take</span></span> <span class="number">3</span> (<span class="name"><span class="builtin-name">iterate</span></span> (<span class="name"><span class="builtin-name">partial</span></span> + <span class="number">1</span>) <span class="number">1</span>))</span><br><span class="line"><span class="comment">;= (1 2 3)</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">take</span></span> <span class="number">5</span> (<span class="name"><span class="builtin-name">iterate</span></span> (<span class="name"><span class="builtin-name">partial</span></span> + <span class="number">1</span>) <span class="number">1</span>))</span><br><span class="line"><span class="comment">;= (1 2 3 4 5)</span></span><br></pre></td></tr></table></figure>
+<h2 id="惰性序列分块"><a href="#惰性序列分块" class="headerlink" title="惰性序列分块"></a>惰性序列分块</h2><p>实现惰性序列有两种基本的策略思想</p>
+<ul>
+<li>对于惰性序列中的元素一个一个唤醒(one-by-one)</li>
+<li>对于惰性序列中的元素分组唤醒(chunks, batches)</li>
+</ul>
+<p>在<code>clojure</code> 1.1+中，惰性序列是分块的，也就是要求值时是批量唤醒。</p>
+<p>例如下面这个例子</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">take</span></span> <span class="number">10</span> (<span class="name"><span class="builtin-name">range</span></span> <span class="number">1</span> <span class="number">1000000000000</span>))</span><br></pre></td></tr></table></figure>
+<p>如果是一个一个地唤醒元素求值，那么急需要进行10次唤醒元素的操作，而如果是分批唤醒元素的话，那么就可以一次唤醒操作就获得前10个元素的值，因为<code>clojure</code>中一次唤醒最多可以唤醒32个元素(32 elements a time)，这种做法减少了唤醒操作的次数，而且对于一般的工作场景，还加快了惰性序列唤醒操作的执行效率。</p>
+
+  </div>
+</article>
+
+
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="http://zjhmale.github.io" target="_blank" rel="noopener">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/zjhmale" target="_blank" rel="noopener">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#lazy-evaluation"><span class="toc-number">1.</span> <span class="toc-text">lazy evaluation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#惰性序列"><span class="toc-number">2.</span> <span class="toc-text">惰性序列</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#构造惰性序列"><span class="toc-number">3.</span> <span class="toc-text">构造惰性序列</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#唤醒惰性序列-强制求值"><span class="toc-number">4.</span> <span class="toc-text">唤醒惰性序列(强制求值)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#用来产生惰性序列的函数操作"><span class="toc-number">5.</span> <span class="toc-text">用来产生惰性序列的函数操作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#惰性序列分块"><span class="toc-number">6.</span> <span class="toc-text">惰性序列分块</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/" target="_blank" rel="noopener"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/&text=laziness in clojure" target="_blank" rel="noopener"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/&title=laziness in clojure" target="_blank" rel="noopener"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/&is_video=false&description=laziness in clojure" target="_blank" rel="noopener"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=laziness in clojure&body=Check out this article: http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/&title=laziness in clojure" target="_blank" rel="noopener"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/&title=laziness in clojure" target="_blank" rel="noopener"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/&title=laziness in clojure" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/&title=laziness in clojure" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/&name=laziness in clojure&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://yoursite.com/2013/07/19/2013-07-19-laziness-in-clojure/&t=laziness in clojure" target="_blank" rel="noopener"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2013-2020
+    Zheng Jihui
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="http://zjhmale.github.io" target="_blank" rel="noopener">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/zjhmale" target="_blank" rel="noopener">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+
+    <!-- jquery -->
+
+<script src="/lib/jquery/jquery.min.js"></script>
+
+
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+
+<!-- clipboard -->
+
+  
+<script src="/lib/clipboard/clipboard.min.js"></script>
+
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Disqus Comments --><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+</body>
+</html>

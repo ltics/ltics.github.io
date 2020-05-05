@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- hexo-inject:begin --><!-- hexo-inject:end --><!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="举例来说，让我们假设现在需要利用一个分类器模型来对鱼类包装厂中的鱼进行分类。在这种情况下，鱼最终会被分到两个独立的类别中。这里假设我们最终将鱼最终分到鲈鱼或者是三文鱼类中。我们需要选取足够多样本数据作为训练数据用于训练我们的模型，并且还需要分析这些数据在一些选中的特征上的分布情况。这里我们使用两个特征来分类数据，分别是鱼的长度和表皮的亮度。 鱼的长度这个特征值得分布可以如下图所示：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="cljmlchapter3-category data">
+<meta property="og:url" content="http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/index.html">
+<meta property="og:site_name" content="">
+<meta property="og:description" content="举例来说，让我们假设现在需要利用一个分类器模型来对鱼类包装厂中的鱼进行分类。在这种情况下，鱼最终会被分到两个独立的类别中。这里假设我们最终将鱼最终分到鲈鱼或者是三文鱼类中。我们需要选取足够多样本数据作为训练数据用于训练我们的模型，并且还需要分析这些数据在一些选中的特征上的分布情况。这里我们使用两个特征来分类数据，分别是鱼的长度和表皮的亮度。 鱼的长度这个特征值得分布可以如下图所示：">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://yoursite.com/images/cljml/chap3/image1.png">
+<meta property="og:image" content="http://yoursite.com/images/cljml/chap3/image2.png">
+<meta property="og:image" content="http://yoursite.com/images/cljml/chap3/image3.png">
+<meta property="og:image" content="http://yoursite.com/images/cljml/chap3/image4.png">
+<meta property="og:image" content="http://yoursite.com/images/cljml/chap3/image5.png">
+<meta property="og:image" content="http://yoursite.com/images/cljml/chap3/image6.png">
+<meta property="article:published_time" content="2014-08-08T01:44:20.000Z">
+<meta property="article:modified_time" content="2020-05-05T11:48:02.094Z">
+<meta property="article:author" content="Zheng Jihui">
+<meta property="article:tag" content="Clojure">
+<meta property="article:tag" content="Machine Learning">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/images/cljml/chap3/image1.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>cljmlchapter3-category data</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+      
+<link rel="stylesheet" href="/css/rtl.css">
+
+    
+    <!-- rss -->
+    
+    
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <!-- hexo-inject:begin --><!-- hexo-inject:end --><div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="http://zjhmale.github.io" target="_blank" rel="noopener">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/zjhmale" target="_blank" rel="noopener">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2014/08/11/2014-08-11-cljmlchapter4-ann/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2014/08/01/2014-08-01-cljmlchapter1-use-matrices/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/" target="_blank" rel="noopener"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/&text=cljmlchapter3-category data" target="_blank" rel="noopener"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/&title=cljmlchapter3-category data" target="_blank" rel="noopener"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/&is_video=false&description=cljmlchapter3-category data" target="_blank" rel="noopener"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=cljmlchapter3-category data&body=Check out this article: http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/&title=cljmlchapter3-category data" target="_blank" rel="noopener"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/&title=cljmlchapter3-category data" target="_blank" rel="noopener"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/&title=cljmlchapter3-category data" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/&title=cljmlchapter3-category data" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/&name=cljmlchapter3-category data&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/&t=cljmlchapter3-category data" target="_blank" rel="noopener"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#理解贝叶斯分类"><span class="toc-number">1.</span> <span class="toc-text">理解贝叶斯分类</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        cljmlchapter3-category data
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name"></span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2014-08-08T01:44:20.000Z" itemprop="datePublished">2014-08-08</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link" href="/tags/Clojure/" rel="tag">Clojure</a>, <a class="tag-link" href="/tags/Machine-Learning/" rel="tag">Machine Learning</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>举例来说，让我们假设现在需要利用一个分类器模型来对鱼类包装厂中的鱼进行分类。在这种情况下，鱼最终会被分到两个独立的类别中。这里假设我们最终将鱼最终分到鲈鱼或者是三文鱼类中。我们需要选取足够多样本数据作为训练数据用于训练我们的模型，并且还需要分析这些数据在一些选中的特征上的分布情况。这里我们使用两个特征来分类数据，分别是鱼的长度和表皮的亮度。</p>
+<p>鱼的长度这个特征值得分布可以如下图所示：</p>
+<center>
+    <img src="/images/cljml/chap3/image1.png">
+</center>
+
+<p>同样的，我们也可以可视化出鱼的表皮亮度在样本数据中的分布情况，如下图所示：</p>
+<center>
+    <img src="/images/cljml/chap3/image2.png">
+</center>
+
+<p>从上面两个分布图来看，我们看到如果仅仅只有鱼的长度这一个特征是没有办法获取足够的信息去对鱼做分类操作的。因此鱼的长度这一个特征在分类模型中的系数会相对较小。相反的，因为鱼表皮的亮度这一个特征在决定鱼的类型时扮演着更重要的角色，所以这个特征在最终的预估分类模型中权值系数向量中对应的系数值会更大一些。</p>
+<p>一旦我们对已有的分类问题进行了建模，我们就可以将训练数据划分成两个(或者更多)个类别集中。这个在定制分类模型中用来在向量空间中将数据进行类别划分的超平面也叫做<strong>决策边界(decision boundary)</strong>。在决策边界一侧的所有点都属于某一个类，而在决策边界另一侧的所有点则属于是另一个类别。一个很明显的推论就是，根据需要区分的独立类别的个数，一个给定的分类器模型可以有好几个这样的决策平面。</p>
+<p>现在我们可以整合这两个特征来训练我们的模型了，并最终会产生一个预估决策边界来划分鱼的两个类别。可以用如下的散点图来可视化这个决策边界作用于训练数据之上的效果：</p>
+<center>
+    <img src="/images/cljml/chap3/image3.png">
+</center>
+
+<p>如上图所示，我们近似地使用一个直线去作为分类器模型的决策边界，因此，我们是将这个分类模型当做了一个线性函数。当然我们也可以让这个分类器以高阶多项式函数的形式去对样本数据进行建模，使用高阶多项式也许可以得到一个精度更高的分类器模型。可以用下图来可视化此时分类器的决策边界：</p>
+<center>
+    <img src="/images/cljml/chap3/image4.png">
+</center>
+
+<p>上图所示的用来划分数据的决策边界都是基于二维特征的。当训练数据具有更高维度的特征的时候，决策边界将会变得很复杂以至于在二维空间中很难可视化出来。例如有三个特征，那么决策边界将会是一个三维空间中的一个平面，如下图所示。需要注意的是，为了清楚起见，样本数据点并没有在下图中标出。从下图也可以看出，样本数据中其中两个维度的变化范围在<script type="math/tex">[-10, 10]</script>内，第三个特征的数值变化范围在<script type="math/tex">[-200, 200]</script>内。</p>
+<center>
+    <img src="/images/cljml/chap3/image5.png">
+</center>
+
+<h2 id="理解贝叶斯分类"><a href="#理解贝叶斯分类" class="headerlink" title="理解贝叶斯分类"></a>理解贝叶斯分类</h2><p>现在我们将会探索贝叶斯分类技术从而分类数据。一个<strong>贝叶斯分类器</strong>本质上是一个基于贝叶斯理论的概率分类器，贝叶斯理论是基于条件概率。一个基于贝叶斯分类器的模型会假设样本数据中的每一个特征都是完全独立的。对于独立，意味着模型中的每一个特征都可以独立于其他的特征单独变化。换句话说，模型中的特征是相互排斥的。因此，一个贝叶斯分类器会假设分类模型中某一个特定的特征存在与否和模型中其他的特征存在与否完全独立，互不影响。</p>
+<script type="math/tex; mode=display">P(A)$$这一项被用来表示特征A出现的概率。这个值是一个在$$[0, 1]$$范围内的概率值。当然也可以用百分数来表示这个值。例如，$$0.5$$这个概率值也可以被写作$$50\%$$或者$$50 percent$$。假设我们现在想要找到一个特征A在一个给定的样本集中出现的概率。因此$$P(A)$$的值越大说明特征A有更高的机会出现。我们可以用如下的公式形式化的表示$$P(A)$$这一项：
+
+$$P(A) = \frac{样本集中有特征A的样本数量}{样本集中总的样本数量}</script><p>假如<script type="math/tex">A</script>和<script type="math/tex">B</script>是分类器模型中的两种情况或者特征，我们就可以使用<script type="math/tex">P(A \mid B)</script>这一项表示当<script type="math/tex">B</script>一定发生时<script type="math/tex">A</script>发生的概率。这个值也被叫做在<script type="math/tex">B</script>条件下的<script type="math/tex">A</script>的条件概率，<script type="math/tex">P(A \mid B)</script>这一项也读作在<script type="math/tex">B</script>条件下<script type="math/tex">A</script>的概率。<script type="math/tex">B</script>也称为<script type="math/tex">A</script>的证据因子或者归一化常数，条件概率也称为后验概率。在条件概率中，<script type="math/tex">A</script>和<script type="math/tex">B</script>可以是相互独立的，也可以不是相互独立的。此外除了条件概率，还有表示<script type="math/tex">A</script>和<script type="math/tex">B</script>同时发生的联合概率<script type="math/tex">P(A \cap B)</script>。假如<script type="math/tex">A</script>和<script type="math/tex">B</script>是相互独立的，那么<script type="math/tex">P(A \cap B)</script>这一项就相当于是<script type="math/tex">A</script>和<script type="math/tex">B</script>分别出现的概率的乘积，我们可以用如下的等式表示这个关系：</p>
+<script type="math/tex; mode=display">P(A \cap B) = P(A) \cdot P(B) \; 当且仅当A和B是相互独立的</script><p>而条件概率的定义是用联合概率来表述的，如下式所示：</p>
+<script type="math/tex; mode=display">P(A \mid B) = \frac{P(A \cap B)}{P(B)}</script><p>所以当<script type="math/tex">A</script>和<script type="math/tex">B</script>两者相互独立的时候，条件概率通过简单的化简就可以规约为如下的形式了：</p>
+<script type="math/tex; mode=display">\begin{align*}
+& P(A \mid B) = P(A) \\
+& P(B \mid A) = P(B)
+\end{align*}</script><p>贝叶斯理论描述了两个条件概率<script type="math/tex">P(A \mid B)</script>与<script type="math/tex">P(B \mid A)</script>以及概率<script type="math/tex">P(A)</script>，<script type="math/tex">P(B)</script>之间的关系，可以用如下的公式描述：</p>
+<script type="math/tex; mode=display">P(A \mid B) = \frac{P(B \mid A) \cdot P(A)}{P(B)}</script><p>上面的公式通过之前的知识可以很轻松的推倒出来，当然要使上面的式子成立，<script type="math/tex">P(A)</script>和<script type="math/tex">P(B)</script>都必须要大于<script type="math/tex">0</script>。</p>
+<p>让我们回顾之前描述的那个鱼包装厂中对鱼分类的例子。我们要解决的问题是，根绝给定鱼的物理特征，我们需要确定这条鱼是鲈鱼还是三文鱼。现在我们就是用贝叶斯分类器来实现一个解决方案，因此我们需要用贝叶斯理论来对我们的样本数据进行建模。</p>
+<p>让我们假设每一类鱼都有三个相互独立的特征，分别是表皮的亮度，长度和宽度，因此我们训练用的样本数据会如下表所示那样：</p>
+<center>
+    <img src="/images/cljml/chap3/image6.png">
+</center>
+
+<p>为了实现的简便性，我们使用Clojure中的symbols来表示这些特征。我们首先需要生成训练数据：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">;; 鲈鱼大多是体型瘦长且浅色表皮</span></span><br><span class="line">(<span class="name"><span class="builtin-name">defn</span></span> make-sea-bass []</span><br><span class="line">  #&#123;<span class="symbol">:sea-bass</span></span><br><span class="line">    (<span class="name"><span class="builtin-name">if</span></span> (<span class="name"><span class="builtin-name">&lt;</span></span> (<span class="name"><span class="builtin-name">rand</span></span>) <span class="number">0.2</span>) <span class="symbol">:fat</span> <span class="symbol">:thin</span>)</span><br><span class="line">    (<span class="name"><span class="builtin-name">if</span></span> (<span class="name"><span class="builtin-name">&lt;</span></span> (<span class="name"><span class="builtin-name">rand</span></span>) <span class="number">0.7</span>) <span class="symbol">:long</span> <span class="symbol">:short</span>)</span><br><span class="line">    (<span class="name"><span class="builtin-name">if</span></span> (<span class="name"><span class="builtin-name">&lt;</span></span> (<span class="name"><span class="builtin-name">rand</span></span>) <span class="number">0.8</span>) <span class="symbol">:light</span> <span class="symbol">:dark</span>)&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">;; 三文鱼大多是体型肥硕且深色表皮</span></span><br><span class="line">(<span class="name"><span class="builtin-name">defn</span></span> make-salmon []</span><br><span class="line">  #&#123;<span class="symbol">:salmon</span></span><br><span class="line">    (<span class="name"><span class="builtin-name">if</span></span> (<span class="name"><span class="builtin-name">&lt;</span></span> (<span class="name"><span class="builtin-name">rand</span></span>) <span class="number">0.8</span>) <span class="symbol">:fat</span> <span class="symbol">:thin</span>)</span><br><span class="line">    (<span class="name"><span class="builtin-name">if</span></span> (<span class="name"><span class="builtin-name">&lt;</span></span> (<span class="name"><span class="builtin-name">rand</span></span>) <span class="number">0.5</span>) <span class="symbol">:long</span> <span class="symbol">:short</span>)</span><br><span class="line">    (<span class="name"><span class="builtin-name">if</span></span> (<span class="name"><span class="builtin-name">&lt;</span></span> (<span class="name"><span class="builtin-name">rand</span></span>) <span class="number">0.3</span>) <span class="symbol">:light</span> <span class="symbol">:dark</span>)&#125;)</span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">defn</span></span> make-sample-fish []</span><br><span class="line">  (<span class="name"><span class="builtin-name">if</span></span> (<span class="name"><span class="builtin-name">&lt;</span></span> (<span class="name"><span class="builtin-name">rand</span></span>) <span class="number">0.3</span>) (<span class="name">make-sea-bass</span>) (<span class="name">make-salmon</span>)))</span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">def</span></span> fish-training-data</span><br><span class="line">  (<span class="name"><span class="builtin-name">for</span></span> [i (<span class="name"><span class="builtin-name">range</span></span> <span class="number">10000</span>)] (<span class="name">make-sample-fish</span>)))</span><br></pre></td></tr></table></figure>
+<p>我们定义了两个函数<code>make-sea-bass</code>和<code>make-salmon</code>，从而可以产生一系列包含两类鱼的数据集，我们简单的使用<code>:salmon</code>和<code>:sea-bass</code>关键字来表示两种鱼的特征。同样的，我们也可以使用Clojure中的关键字(keywords)来枚举出鱼的特征的值。在这个例子中，鱼表皮的亮度是<code>:light</code>或者<code>:dark</code>，长度是<code>:long</code>或者<code>:short</code>，宽度是<code>:fat</code>或者<code>:thin</code>。我们还定义了<code>make-sample-fish</code>函数来随机产生带有上面定义特征的鱼样本。</p>
+<p>注意到根据上面的代码中，我们定义的两类鱼中，鲈鱼大多是瘦长形状的，并且表皮是浅色的，而三味鱼大多是胖而短的，并且表皮颜色为深色。并且根据<code>make-sample-fish</code>函数，三味鱼的数量将会大于鲈鱼的数量。这里产生的数据只是为了方便我们实现要讨论的分类模型，不过也非常鼓励读着使用真实的数据集来进行实验。我们在第二章介绍过的在Incanter库中的<em>Iris数据集</em>，就是一组真实世界采集到得数据集，可以被当做训练数据集来训练我们实现过的机器学习模型。</p>
+<p>现在，我们将会实现以下的函数来计算某一些特定的概率：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">defn</span></span> probability</span><br><span class="line">  <span class="string">"根据训练数据利用在满足给定属性值的条件下计算特定类别出现的后验概率。"</span></span><br><span class="line">  [attribute &amp; &#123;<span class="symbol">:keys</span></span><br><span class="line">                [category prior-positive prior-negative data]</span><br><span class="line">                <span class="symbol">:or</span> &#123;category <span class="literal">nil</span></span><br><span class="line">                     data fish-training-data&#125;&#125;]</span><br><span class="line">  (<span class="name"><span class="builtin-name">let</span></span> [by-category (<span class="name"><span class="builtin-name">if</span></span> category</span><br><span class="line">                      (<span class="name"><span class="builtin-name">filter</span></span> category data)</span><br><span class="line">                      data)</span><br><span class="line">        positive (<span class="name"><span class="builtin-name">count</span></span> (<span class="name"><span class="builtin-name">filter</span></span> attribute by-category))</span><br><span class="line">        negative (<span class="name"><span class="builtin-name">-</span></span> (<span class="name"><span class="builtin-name">count</span></span> by-category) positive)</span><br><span class="line">        total (<span class="name"><span class="builtin-name">+</span></span> positive negative)]</span><br><span class="line">    (/ positive total))</span><br></pre></td></tr></table></figure>
+<p>我们本质上是根据某一样东西出现的次数来计算的概率值。</p>
+<p>上面代码中定义的<code>probability</code>函数需要一个参数去表示我们需要去计算概率的属性或者条件值。此外这个函数还接受一些可选的配置参数，比如说用来表示计算特征值的总体数据样本集的参数<code>data</code>，默认值是我们之前定义过的<code>fish-training-data</code>序列，还有一个表征鱼的品种的配置参数<code>category</code>。实际上上面定义的函数计算的是一个条件概率，其中<code>attribute</code>和<code>category</code>可以表示成<script type="math/tex">A</script>和<script type="math/tex">B</script>的话，那么上面函数计算的概率实际就是<script type="math/tex">P(A \mid B)</script>。<code>probability</code>函数利用<code>filter</code>函数来从训练数据中过滤出所有满足条件的数据，并且计算其出现的次数。然后又利用<code>(count by-category)</code>来计算满足<code>category</code>类别的所有样本数量，利用<code>(count (filter attribute by-category))</code>来计算<code>by-category</code>中满足<code>attribute</code>条件的样本数量作为正例，然后将两者的差值作为负例。这个函数最终返回的是在<code>category</code>条件下，又符合<code>attribute</code>属性样本出现的条件概率。</p>
+<p>让我们用<code>probability</code>函数来对我们的训练样本数据进行一点点的描述：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">user&gt; (probability :dark :category :salmon)</span><br><span class="line">1204/1733</span><br><span class="line">user&gt; (probability :dark :category :sea-bass)</span><br><span class="line">621/3068</span><br><span class="line">user&gt; (probability :light :category :salmon)</span><br><span class="line">529/1733</span><br><span class="line">user&gt; (probability :light :category :sea-bass)</span><br><span class="line">2447/3068</span><br></pre></td></tr></table></figure>
+<p>可以从上面的结果中看到，假如一条鱼是三文鱼，那么这条鱼的表皮有极高的概率是深色的，在上面的结果中是<code>1204/1733</code>。但是如果一条鱼是鲈鱼然后这条鱼的表皮是深色的概率以及一条鱼是三味鱼的情况下表皮是浅色的概率相较于一条鱼是鲈鱼但是表皮是浅色或者一条鱼是三文鱼而表皮是深色的概率要小得多。注意上面所说的概率都是条件概率。</p>
+<p>让我们假设给定一条鱼的特征为深色的表皮，长而肥，给定了这一组特征条件之后，我们需要确定这条鱼是鲈鱼还是三文鱼。从概率的角度来讲，我们需要确定满足这个条件的鱼是鲈鱼或者是三文鱼的概率。我们可以分别用<script type="math/tex">P(三文鱼 \mid 深色, 长, 肥)</script>和<script type="math/tex">P(鲈鱼 \mid 深色, 长, 肥)</script>两项来表示满足给定条件的鱼是三文鱼或者是鲈鱼的条件概率值。我们可以分别计算这两项的值，然后哪一项的值大，那么就确定鱼是对应的类别。</p>
+<p>根绝贝叶斯理论，我们可以用如下的等式定义上面的那两项条件概率：</p>
+<script type="math/tex; mode=display">P(三文鱼 \mid 深色, 长, 肥) = \frac{P(深色, 长, 肥 \mid 三文鱼) \cdot P(三文鱼)}{P(深色, 长, 肥)}</script><script type="math/tex; mode=display">P(鲈鱼 \mid 深色, 长, 肥) = \frac{P(深色, 长, 肥 \mid 鲈鱼) \cdot P(鲈鱼)}{P(深色, 长, 肥)}</script><script type="math/tex; mode=display">P(三文鱼 \mid 深色, 长, 肥)$$和$$P(深色, 长, 肥 \mid 三文鱼)$$这两项可能会有一点混淆，这两项的区别在于指定条件出现的顺序。$$P(三文鱼 \mid 深色, 长, 肥)$$这一项表示一条鱼是深色，长且肥的条件下是三文鱼的条件概率，而$$P(深色, 长, 肥 \mid 三文鱼)$$这一项表示一条鱼是三文鱼的条件下是深色的并且长而肥的条件概率。
+
+$$P(深色, 长, 肥 \mid 三文鱼)$$这一项可以利用训练数据和如下方式进行计算。因为一条鱼的三个特征是相互独立的，所以$$P(深色, 长, 肥 \mid 三文鱼)$$这一项可以写成三个独立特征在鱼是三文鱼的条件下的条件概率的乘积。这里的相互独立是指分类模型中三个特征的每个特征各自的分布情况不会受到其他两个特征的变化而影响，也就是说三个特征各自的分布并不依赖其他的特征。
+
+我们可以将$$P(深色, 长, 肥 \mid 三文鱼)$$表述成三种特征各自独立的条件概率的乘积：
+
+$$\begin{align*}
+P(深色, 长, 肥 \mid 三文鱼) = & P(深色 \mid 三文鱼) \cdot \\
+& P(长 \mid 三文鱼) \cdot \\
+& P(肥 \mid 三文鱼)
+\end{align*}</script><p>有趣的是，<script type="math/tex">P(深色 \mid 三文鱼)</script>，<script type="math/tex">P(长 \mid 三文鱼)</script>以及<script type="math/tex">P(肥 \mid 三文鱼)</script>这三项可以轻易的使用训练数据集以及之前定义过的<code>probability</code>函数计算出来。同样的我们可以用相同的方法计算出一条鱼是三文鱼这一个先验概率<script type="math/tex">P(三文鱼)</script>，因此现在用来计算<script type="math/tex">P(三文鱼 \mid 深色, 长, 肥)</script>这一项的值唯一剩下的一项还没有计算出来的就是<script type="math/tex">P(深色, 长, 肥)</script>这一项。我们可以利用一些概率论中的技巧从而避免直接计算这个概率值。</p>
+<p>给定一条鱼是深色，长而肥的，而这条鱼不是三文鱼就是鲈鱼，也就是说这两种情况代表了我们分类模型中所有可能出现的情况，换句话说，这两种情况的概率值相加一定为<script type="math/tex">1</script>，因此我们可以用如下等式表示<script type="math/tex">P(深色, 长, 肥)</script>这一项：</p>
+<script type="math/tex; mode=display">因为 \; P(三文鱼 \mid 深色, 长, 肥) + P(鲈鱼 \mid 深色, 长, 肥) = 1,</script><script type="math/tex; mode=display">\begin{align*}
+& P(深色, 长, 肥) = \\
+& P(深色, 长, 肥 \mid 三文鱼) \cdot P(三文鱼) + \\
+& P(深色, 长, 肥 \mid 鲈鱼) \cdot P(鲈鱼)
+\end{align*}</script><p>上述等式等号右侧的项比如<script type="math/tex">P(三文鱼)</script>，<script type="math/tex">P(深色 \mid 三文鱼)</script>等等都可以根据训练数据计算出来。因此我们现在可以使用我们的训练数据来计算<script type="math/tex">P(三文鱼 \mid 深色, 长, 肥)</script>这一项的值了，最终这一项的值可以用如下的等式表示：</p>
+<script type="math/tex; mode=display">P(三文鱼 \mid 深色, 长, 肥) = \frac{P(深色, 长, 肥 \mid 三文鱼) \cdot P(三文鱼)}{P(深色, 长, 肥)}</script><script type="math/tex; mode=display">\begin{align*}
+& 其中 \; P(深色, 长, 肥) = \\
+& P(深色, 长, 肥 \mid 三文鱼) \cdot P(三文鱼) + \\
+& P(深色, 长, 肥 \mid 鲈鱼) \cdot P(鲈鱼)
+\end{align*}</script><p>现在，可以利用训练数据集和之前定义过的<code>probability</code>函数来实现上面所示的等式了。首先，我们可以先求得<script type="math/tex">P(深色, 长, 肥 \mid 三文鱼) \cdot P(三文鱼)</script>这一项的值，可以用如下代码描述：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">defn</span></span> evidence-of-salmon [&amp; attrs]</span><br><span class="line">  (<span class="name"><span class="builtin-name">let</span></span> [attr-probs (<span class="name"><span class="builtin-name">map</span></span> #(<span class="name">probability</span> % <span class="symbol">:category</span> <span class="symbol">:salmon</span>) attrs)</span><br><span class="line">        class-and-attr-prob (<span class="name"><span class="builtin-name">conj</span></span> attr-probs</span><br><span class="line">                                  (<span class="name">probability</span> <span class="symbol">:salmon</span>))]</span><br><span class="line">    (<span class="name"><span class="builtin-name">float</span></span> (<span class="name"><span class="builtin-name">apply</span></span> * class-and-attr-prob))))</span><br></pre></td></tr></table></figure>
+<p>我们利用训练数据与<code>probability</code>函数分别计算出了<script type="math/tex">P(深色 \mid 三文鱼)</script>，<script type="math/tex">P(长 \mid 三文鱼)</script>，<script type="math/tex">P(肥 \mid 三文鱼)</script>以及<script type="math/tex">P(三文鱼)</script>的值，从而最终计算得到了<script type="math/tex">P(深色, 长, 肥 \mid 三文鱼) \cdot P(三文鱼)</script>这一项的值。</p>
+<p>在上面的代码中，我们利用<code>probability</code>函数，求得了<script type="math/tex">P(三文鱼)</script>以及<script type="math/tex">P(i \mid 三文鱼)</script>项的值，其中<code>i</code>代表所有的特征熟悉。然后我们将计算到的项利用<code>apply</code>函数和<code>*</code>函数的组合相乘。最终使用<code>float</code>函数将利用<code>probability</code>函数得到的分数结果转换成一个浮点数。我们可以在REPL中使用以下上面定义的函数，如下所示：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">user&gt; (evidence-of-salmon :dark)</span><br><span class="line"><span class="number">0.4816</span></span><br><span class="line">user&gt; (evidence-of-salmon :dark :long)</span><br><span class="line"><span class="number">0.2396884</span></span><br><span class="line">user&gt; (evidence-of-salmon)</span><br><span class="line"><span class="number">0.6932</span></span><br></pre></td></tr></table></figure>
+<p>从REPL的输出中可以看到，在训练数据中是三文鱼的鱼中有<script type="math/tex">48.16\%</script>的概率会是深色的表皮，同样的在三文鱼中有<script type="math/tex">23.96%</script>的概率会是深色的表皮并且体型是长的，而所有鱼中有<script type="math/tex">69.32\%</script>的鱼是三文鱼，也就是从这些鱼中随便抓一只出来会有<script type="math/tex">69.32\%</script>的概率抓到一条三文鱼。<code>(evidence-of-salmon :dark :long)</code>返回的值其实就是<script type="math/tex">P(深色, 长 \mid 三文鱼)</script>这一项的值，同样的<code>(evidence-of-salmon)</code>返回的值是<script type="math/tex">P(三文鱼)</script>这一项的值。</p>
+<p>同样的，我们也可以定义<code>evidence-of-sea-bass</code>函数来确定与鲈鱼及其特征有关的概率值。因为我们只考虑了两种鱼的类别，所以有<script type="math/tex">P(三文鱼) + P(鲈鱼) = 1</script>，我们可以很容易地在REPL中验证这个结果。有趣的是我们可能会看到一个极小的误差，这个误差并不是因为训练数据造成的。这个极小的误差实际上是一个浮点数舍入错误，是因为浮点数计算的局限性造成的。我们实际上是可以通过使用十进制数或者是<code>BigDecimal</code>(来自<code>java.math</code>包)数据类型来防止这种错误的产生，而不是仅仅使用浮点数。我们可以在REPL中验证这个错误，如下所示：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">user&gt; (+ (evidence-of-sea-bass) (evidence-of-salmon))</span><br><span class="line"><span class="number">1.0000000298023224</span></span><br></pre></td></tr></table></figure>
+<p>我们可以通过如下的修改来消除这个由于浮点数带来小误差，如下所示：</p>
+<p>首先引入<code>BigDecimal</code>数据类型</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">ns</span></span> clj-ml3.bayes-implementation</span><br><span class="line">  (<span class="symbol">:import</span> [java.math BigDecimal]))</span><br></pre></td></tr></table></figure>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">defn</span></span> evidence-of-sea-bass-decimal [&amp; attrs]</span><br><span class="line">  (<span class="name"><span class="builtin-name">let</span></span> [attr-probs (<span class="name"><span class="builtin-name">map</span></span> #(<span class="name">probability</span> % <span class="symbol">:category</span> <span class="symbol">:sea-bass</span>) attrs)</span><br><span class="line">        class-and-attr-prob (<span class="name"><span class="builtin-name">conj</span></span> attr-probs</span><br><span class="line">                                  (<span class="name">probability</span> <span class="symbol">:sea-bass</span>))]</span><br><span class="line">    (<span class="name">BigDecimal.</span> (<span class="name"><span class="builtin-name">str</span></span> (<span class="name"><span class="builtin-name">float</span></span> (<span class="name"><span class="builtin-name">apply</span></span> * class-and-attr-prob))))))</span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">defn</span></span> evidence-of-salmon-decimal [&amp; attrs]</span><br><span class="line">  (<span class="name"><span class="builtin-name">let</span></span> [attr-probs (<span class="name"><span class="builtin-name">map</span></span> #(<span class="name">probability</span> % <span class="symbol">:category</span> <span class="symbol">:salmon</span>) attrs)</span><br><span class="line">        class-and-attr-prob (<span class="name"><span class="builtin-name">conj</span></span> attr-probs</span><br><span class="line">                                  (<span class="name">probability</span> <span class="symbol">:salmon</span>))]</span><br><span class="line">    (<span class="name">BigDecimal.</span> (<span class="name"><span class="builtin-name">str</span></span> (<span class="name"><span class="builtin-name">float</span></span> (<span class="name"><span class="builtin-name">apply</span></span> * class-and-attr-prob))))))</span><br><span class="line"></span><br><span class="line">user&gt; (+ (evidence-of-salmon-decimal) (evidence-of-sea-bass-decimal))</span><br><span class="line">1.0000M</span><br></pre></td></tr></table></figure>
+<p>通过引入<code>BigDecimal</code>类型，就可以有效的解决浮点数带来的误差问题了。</p>
+<p>现在有一个问题，就是假如我们不只是只有两个鱼的类型，那么我们就需要另外加入一个函数，才能重新计算和这一个类有关的所有概率值，所以我们需要泛化我们的函数<code>evidence-of-salmon</code>和<code>evidence-of-sea-bass</code>，这样我们就可以计算和任意鱼的类型以及一些观测到的鱼的特征值的概率值了，如下面代码所示：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">;; 泛化函数</span></span><br><span class="line">(<span class="name"><span class="builtin-name">defn</span></span> evidence-of-category-with-attrs</span><br><span class="line">  [category &amp; attrs]</span><br><span class="line">  (<span class="name"><span class="builtin-name">let</span></span> [attr-probs (<span class="name"><span class="builtin-name">map</span></span> #(<span class="name">probability</span> % <span class="symbol">:category</span> category) attrs)</span><br><span class="line">        class-and-attr-prob (<span class="name"><span class="builtin-name">conj</span></span> attr-probs</span><br><span class="line">                                  (<span class="name">probability</span> category))]</span><br><span class="line">    (<span class="name"><span class="builtin-name">float</span></span> (<span class="name"><span class="builtin-name">apply</span></span> * class-and-attr-prob))))</span><br></pre></td></tr></table></figure>
+<p>上面代码定义的函数与<code>evidence-of-salmon</code>和<code>evidence-of-sea-bass</code>函数返回的值是一样的，这两个函数其实都只是<code>evidence-of-category-with-attrs</code>函数的特殊情况：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">user&gt; (evidence-of-salmon :dark :fat)</span><br><span class="line"><span class="number">0.38502988</span></span><br><span class="line">user&gt; (evidence-of-category-with-attrs :salmon :dark :fat)</span><br><span class="line"><span class="number">0.38502988</span></span><br></pre></td></tr></table></figure>
+<p>使用<code>evidence-of-salmon</code>与<code>evidence-of-sea-bass</code>函数，我们可以计算<code>probability-dark-long-fat-is-salmon</code>，也就是我们最终要求的<script type="math/tex">P(三文鱼 \mid 深色, 长, 肥)</script>这一项的值，如下面代码所示：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">def</span></span> probability-dark-long-fat-is-salmon</span><br><span class="line">  (<span class="name"><span class="builtin-name">let</span></span> [attrs [<span class="symbol">:dark</span> <span class="symbol">:long</span> <span class="symbol">:fat</span>]</span><br><span class="line">        sea-bass? (<span class="name"><span class="builtin-name">apply</span></span> evidence-of-sea-bass attrs)</span><br><span class="line">        salmon? (<span class="name"><span class="builtin-name">apply</span></span> evidence-of-salmon attrs)]</span><br><span class="line">    (/ salmon?</span><br><span class="line">       (<span class="name"><span class="builtin-name">+</span></span> sea-bass? salmon?))))</span><br></pre></td></tr></table></figure>
+<p>我们可以在REPL中观察这个概率值，如下所示：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">user&gt; probability-dark-long-fat-is-salmon</span><br><span class="line"><span class="number">0.957091799207812</span></span><br></pre></td></tr></table></figure>
+<p><code>probability-dark-long-fat-is-salmon</code>的值表示，在一条鱼是深色的长而肥的情况下，会有<script type="math/tex">95.7\%</script>的概率是一条三文鱼。</p>
+<p>用之前定义的<code>probability-dark-long-fat-is-salmon</code>作为一个模板，我们可以泛化这种计算形式。让我们首先定义一个可以被用来传值的数据结构。在Clojure的惯用法中，我们一般都会使用一个map来达到目的。使用map，我们可以表示类型的值，以及对应类型的证据因子值，而且给定了多个类别的证据因子值之后我们就可以计算出某一个类别出现的总概率值了，如下面代码所示：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">defn</span></span> make-category-probability-pair</span><br><span class="line">  [category attrs]</span><br><span class="line">  (<span class="name"><span class="builtin-name">let</span></span> [evidence-of-category (<span class="name"><span class="builtin-name">apply</span></span> evidence-of-category-with-attrs</span><br><span class="line">                                    category attrs)]</span><br><span class="line">    &#123;<span class="symbol">:category</span> category</span><br><span class="line">     <span class="symbol">:evidence</span> evidence-of-category&#125;))</span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">defn</span></span> calculate-probability-of-category</span><br><span class="line">  [sum-of-evidences pair]</span><br><span class="line">  (<span class="name"><span class="builtin-name">let</span></span> [probability-of-category (/ (<span class="symbol">:evidence</span> pair)</span><br><span class="line">                                   sum-of-evidences)]</span><br><span class="line">    (<span class="name"><span class="builtin-name">assoc</span></span> pair</span><br><span class="line">      <span class="symbol">:probability</span> probability-of-category)))</span><br></pre></td></tr></table></figure>
+<p>上面代码中定义的<code>make-category-probability-pair</code>函数使用了之前我们定义的<code>evidence-category-with-attrs</code>函数来计算一个类别以及其属性的证据因子值，然后返回一个既有这个类别值又有证据因子值的一个map对象。此外，我们还定义了<code>calculate-probability-of-category</code>函数利用一个<code>sum-of-evidences</code>参数以及一个由<code>make-category-probability-pair</code>函数返回的值来计算一个类别以及其属性的总概率值，当然，这里所说的总概率值是指在给定属性值的条件下，确定为某一个类别的条件概率值。</p>
+<p>我们可以组合上面定义的两个函数，从而根据给定的观察到的属性计算所有类别的总概率值，然后选择一个最高概率值对应的类别，如下面代码所示：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">defn</span></span> classify-by-attrs</span><br><span class="line">  <span class="string">"将待分类的类型以及观测到的属性值传入，利用内部得贝叶斯分类器进行分类，</span></span><br><span class="line"><span class="string">  返回一个包含有对应观测属性的预测类别，以及这个类别在观测属性基础之上的条件概率的map对象。"</span></span><br><span class="line">  [categories &amp; attrs]</span><br><span class="line">  (<span class="name"><span class="builtin-name">let</span></span> [pairs (<span class="name"><span class="builtin-name">map</span></span> #(<span class="name">make-category-probability-pair</span> % attrs)</span><br><span class="line">                   categories)</span><br><span class="line">        sum-of-evidences (<span class="name"><span class="builtin-name">reduce</span></span> + (<span class="name"><span class="builtin-name">map</span></span> <span class="symbol">:evidence</span> pairs))</span><br><span class="line">        probabilities (<span class="name"><span class="builtin-name">map</span></span> #(<span class="name">calculate-probability-of-category</span></span><br><span class="line">                            sum-of-evidences %)</span><br><span class="line">                          pairs)</span><br><span class="line">        sorted-probabilities (<span class="name"><span class="builtin-name">sort-by</span></span> <span class="symbol">:probability</span> probabilities)</span><br><span class="line">        predicted-category (<span class="name"><span class="builtin-name">last</span></span> sorted-probabilities)]</span><br><span class="line">    predicted-category))</span><br></pre></td></tr></table></figure>
+<p>上面代码中定义的<code>classify-by-attrs</code>函数将所有可能的类别分别映射到了<code>make-category-probability-pair</code>函数中，然后在我们的模型中给定一些观测到的属性值。由于我们会处理由<code>make-category-probability-pair</code>函数返回的一串map对象，所以我们可以借助<code>reduce</code>，<code>map</code>以及<code>+</code>函数的组合来计算<code>sum-of-evidences</code>的值。然后我们将由<code>make-category-probability-pair</code>函数得到map对象以及总的证据因子值传入<code>calculate-probability-of-category</code>函数，从而计算各个类别对应的最终的条件概率值，然后选取条件概率值最高的类别作为预测输出的类别。我们通过将序列按照条件概率值升序排序，然后选取排序后的序列中的最后一个值来做到。</p>
+<p>现在我们可以用<code>classify-by-attrs</code>函数来根据观测到的鱼的属性是深色长而肥的条件下是三文鱼的概率值。这个概率值同样可以使用之前我们定义的<code>probability-dark-long-fat-is-salmon</code>来表示。两种方法都可以得到同样得概率值，就是在给定是深色，长而且肥的条件下，一条鱼可能是三文鱼的概率是<script type="math/tex">95.7\%</script>。我们可以在REPL中验证这个结果，如下所示：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">user&gt; (classify-by-attrs [:salmon :sea-bass] :dark :long :fat)</span><br><span class="line">&#123;<span class="symbol">:probability</span> <span class="number">0.957091799207812</span>, <span class="symbol">:category</span> <span class="symbol">:salmon</span>, <span class="symbol">:evidence</span></span><br><span class="line"><span class="number">0.1949689</span>&#125;</span><br><span class="line">user&gt; probability-dark-long-fat-is-salmon</span><br><span class="line"><span class="number">0.957091799207812</span></span><br></pre></td></tr></table></figure>
+<p><code>classify-by-attrs</code>函数的返回值中也带有了预测类型得名字，在我们上面的例子中就是<code>:salmon</code>，给定的观测到的属性是<code>:dark</code>，<code>:long</code>和<code>:fat</code>。我们可以使用这个函数来得到关于训练数据的更详细的信息：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">user&gt; (classify-by-attrs [:salmon :sea-bass] :dark)</span><br><span class="line">&#123;<span class="symbol">:probability</span> <span class="number">0.8857825967670728</span>, <span class="symbol">:category</span> <span class="symbol">:salmon</span>, <span class="symbol">:evidence</span></span><br><span class="line"><span class="number">0.4816</span>&#125;</span><br><span class="line">user&gt; (classify-by-attrs [:salmon :sea-bass] :light)</span><br><span class="line">&#123;<span class="symbol">:probability</span> <span class="number">0.5362699908806723</span>, <span class="symbol">:category</span> <span class="symbol">:sea-bass</span>, <span class="symbol">:evidence</span></span><br><span class="line"><span class="number">0.2447</span>&#125;</span><br><span class="line">user&gt; (classify-by-attrs [:salmon :sea-bass] :thin)</span><br><span class="line">&#123;<span class="symbol">:probability</span> <span class="number">0.6369809383442954</span>, <span class="symbol">:category</span> <span class="symbol">:sea-bass</span>, <span class="symbol">:evidence</span></span><br><span class="line"><span class="number">0.2439</span>&#125;</span><br></pre></td></tr></table></figure>
+<p>从上面的结果中，我们可以看出，假如看到一条鱼是深色的，那么很有可能是一条三文鱼，而如果是浅色的，则很有可能是一条鲈鱼。此外，如果一条鱼体型很瘦，那么最有可能是一条鲈鱼而不是三文鱼。我们还可以用<code>classify-by-attrs</code>函数来做一些和之前我们做过的行为等价的操作(比如说计算证据因子)，如下所示：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">user&gt; (classify-by-attrs [:salmon] :dark)</span><br><span class="line">&#123;<span class="symbol">:probability</span> <span class="number">1.0</span>, <span class="symbol">:category</span> <span class="symbol">:salmon</span>, <span class="symbol">:evidence</span> <span class="number">0.4816</span>&#125;</span><br><span class="line">user&gt; (classify-by-attrs [:salmon])</span><br><span class="line">&#123;<span class="symbol">:probability</span> <span class="number">1.0</span>, <span class="symbol">:category</span> <span class="symbol">:salmon</span>, <span class="symbol">:evidence</span> <span class="number">0.6932</span>&#125;</span><br></pre></td></tr></table></figure>
+<p>注意到，当仅仅使用<code>[:salmon]</code>作为参数去调用<code>classify-by-attrs</code>函数时，预测的结果永远是三文鱼。一个很明显的推论是，之给定一个类别去让分类器分类的话，<code>classify-by-attrs</code>函数总是会完全肯定地返回传入的那个类别，这个类别出现的条件概率是<script type="math/tex">100\%</script>。但是，这个函数返回的证据因子值却是根据传入的用来训练模型的样本数据中的观测特征值的变化而变化的。</p>
+<p>简而言之，之前实现的代码描述了一个可以利用一些样本数据来进行训练的贝叶斯分类器。最终得到的分类器模型可以根据观察到的鱼的属性值，从而对鱼进行分类。</p>
+<p>我们可以根据在之前描述的例子中定义的<script type="math/tex">P(三文鱼 \mid 深色, 长, 肥)</script>概率来泛化我们的贝叶斯分类器。快速地回顾一下，<script type="math/tex">P(三文鱼 \mid 深色, 长, 肥)</script>这一项可以被表述为以下等式：</p>
+<script type="math/tex; mode=display">P(三文鱼 \mid 深色, 长, 肥) = \frac{P(深色, 长, 肥 \mid 三文鱼) \cdot P(三文鱼)}{P(深色, 长, 肥)}</script><script type="math/tex; mode=display">\begin{align*}
+& 其中 \; P(深色, 长, 肥) = \\
+& P(深色, 长, 肥 \mid 三文鱼) \cdot P(三文鱼) + \\
+& P(深色, 长, 肥 \mid 鲈鱼) \cdot P(鲈鱼)
+\end{align*}</script><p>在上面的等式中，我们仅仅使用了一个类别也就是三文鱼这个类，以及三个独立的特征，鱼的长，宽以及表皮亮度。我们可以泛化上面的等式，将特征变为<script type="math/tex">N</script>个，如下所示：</p>
+<script type="math/tex; mode=display">P(C \mid F_{1}, F_{2}, \; ... \; F_{N}) = \frac{P(C) \cdot P(F_{1} \mid C) \cdot P(F_{2} \mid C) \; ... \; \cdot P(F_{N} \mid C) }{Z}</script><script type="math/tex; mode=display">\begin{align*}
+其中, \; Z = & P(F_{1} \mid C_{1}) \cdot P(F_{2} \mid C_{1}) \; ... \; P(F_{N} \mid C_{1}) \cdot P(C_{1}) + \; \\
+& ... \; + P(F_{1} \mid C_{M}) \cdot P(F_{2} \mid C_{M}) \; ... \; P(F_{N} \mid C_{M}) \cdot P(C_{M})\end{align*}</script><p>上面等式中，<script type="math/tex">Z</script>这一项表示分类模型的证据因子。我们可以使用求和符号与求积符号，将上面地等式进一步地优化从而使其看上去更加的优雅简洁，如下所示：</p>
+<script type="math/tex; mode=display">P(C \mid F_{1}, F_{2}, \; ... \; F_{N}) = \frac{P(C) \cdot \prod_{i=1}^{N}P(F_{i} \mid C)}{\sum_{k=1}^{M}P(C_{k})\prod_{i=1}^{N}P(F_{i} \mid C_{k})}</script><p>之前的等式只是描述了在给定的属性与特征前提下求取一个类别<script type="math/tex">C</script>出现的概率大小。假如我们现在有多个类别可以选择，那我们就需要选择一个出现概率最大的类别。这就引出了贝叶斯分类器的基本定义了，可以用如下等式形式化地表示：</p>
+<script type="math/tex; mode=display">classify(f_{1}, f_{2}, ... , f_{N}) = \underset{c}{arg max} \frac{P(C=c) \cdot \prod_{i=1}^{N}P(F_{i} \mid C=c)}{\sum_{k=1}^{M}P(C_{k})\prod_{i=1}^{N}P(F_{i} \mid C_{k})}</script><p>上面的等式中，<script type="math/tex">classify(f_{1}, f_{2}, ... , f_{N})</script>函数描述了一个选择一个出现概率最大的类别的贝叶斯分类器。需要注意的是<script type="math/tex">F_{1}, F_{2}, ... , F_{N}</script>这些项在分类模型中代表的是不同的特征，而<script type="math/tex">f_{1}, f_{2}, ... , f_{N}</script>这些项则代表的是具体观测到的各个特征对应的实际值。此外，上述等式右侧中的变量<script type="math/tex">c</script>的取值范围就是分类模型中所有可能出现的类别结果。</p>
+<p>我们可以通过<strong>最大后验估计(MAP)</strong>进一步地简化之前的贝叶斯分类器公式，可以看做是给定的特征的正则化贝叶斯统计值。一个更加简洁的贝叶斯分类器可以用如下等式描述：</p>
+<script type="math/tex; mode=display">classify(f_{1}, f_{2}, ... , f_{N}) = \underset{c}{arg max}P(C=c) \cdot \prod_{i=1}^{N}P(F_{i} \mid C=c)</script><p>上面等式所描述的定义意味着<code>classify</code>函数会利用给定的特征来计算每一个类别出现的后验概率，从中选取一个最大概率值对应的类别作为最终的结果。因此上面的等式定义了一个可以使用一些样本数据来训练的贝叶斯分类器，并且之后可以根据观察到的特征值数据来对观测到的样本进行分类。现在我们将使用一种已经实现好的贝叶斯分类器来对给定的分类问题进行建模。</p>
+<p><code>clj-ml</code>库(<em><a href="https://github.com/joshuaeckroth/clj-ml" target="_blank" rel="noopener">https://github.com/joshuaeckroth/clj-ml</a></em>)中有多种实现好的可以被用来对分类问题建模的算法。这个库实际上只是对一个非常优秀流行的机器学习库<strong>Weka</strong>(<em><a href="http://www.cs.waikato.ac.nz/ml/weka/" target="_blank" rel="noopener">http://www.cs.waikato.ac.nz/ml/weka/</a></em>)的一层Clojure封装，Weka是一个Java写成的机器学习库，其中有许多已经实现的比较完美的机器学习算法。这个库中也包含有许多用来对一个已经生成好的分类模型进行评估和验证的方法。当然在这一章节中我们会集中精力看一下如何用<code>clj-ml</code>这个库来实现一个对鱼分类的贝叶斯分类器。</p>
+<blockquote>
+<p>如果要使用clj-ml这个库，需要在Leiningen项目中的project.clj文件中加上如下所示的依赖：<br /><br>[cc.artifice/clj-ml “0.4.0”]<br /><br>在接下来的例子中，我们需要在名字空间中加上对clj-ml库的引用声明，如下所示：<br /><br>(ns my-namespace<br /><br>&nbsp;&nbsp;(:use [clj-ml classifiers data]))</p>
+</blockquote>
+<p>现在我们使用<code>clj-ml</code>库中实现的贝叶斯分类器去对我们之前研究过的鱼类包装厂对鱼分类的问题进行建模。首先，让我们重新定义我们之前定义过的训练样本，使用数值去表示特征的值，而不是使用Clojure中的关键字。当然训练样本中特征值的分布是不变的，比如三文鱼绝大多数都是体型肥硕且是深色表皮，而鲈鱼则是瘦长的体型，浅色的表皮。实现新的样本数据的代码如下所示：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">defn</span></span> rand-in-range</span><br><span class="line">  <span class="string">"根据给定的数值范围产生随机整数"</span></span><br><span class="line">  [min max]</span><br><span class="line">  (<span class="name"><span class="builtin-name">let</span></span> [len (<span class="name"><span class="builtin-name">-</span></span> max min)</span><br><span class="line">        rand-len (<span class="name"><span class="builtin-name">rand-int</span></span> len)]</span><br><span class="line">    (<span class="name"><span class="builtin-name">+</span></span> min rand-len)))</span><br><span class="line"></span><br><span class="line"><span class="comment">;; 鲈鱼大多是体型瘦长且浅色表皮</span></span><br><span class="line">(<span class="name"><span class="builtin-name">defn</span></span> make-sea-bass []</span><br><span class="line">  (<span class="name"><span class="builtin-name">vector</span></span> <span class="symbol">:sea-bass</span></span><br><span class="line">          (<span class="name">rand-in-range</span> <span class="number">6</span> <span class="number">10</span>)          <span class="comment">; length</span></span><br><span class="line">          (<span class="name">rand-in-range</span> <span class="number">0</span> <span class="number">5</span>)           <span class="comment">; width</span></span><br><span class="line">          (<span class="name">rand-in-range</span> <span class="number">4</span> <span class="number">10</span>)))        <span class="comment">; lightness of skin</span></span><br><span class="line"></span><br><span class="line"><span class="comment">;; 三文鱼大多是体型肥硕且深色表皮</span></span><br><span class="line">(<span class="name"><span class="builtin-name">defn</span></span> make-salmon []</span><br><span class="line">  (<span class="name"><span class="builtin-name">vector</span></span> <span class="symbol">:salmon</span></span><br><span class="line">          (<span class="name">rand-in-range</span> <span class="number">0</span> <span class="number">7</span>)           <span class="comment">; length</span></span><br><span class="line">          (<span class="name">rand-in-range</span> <span class="number">4</span> <span class="number">10</span>)          <span class="comment">; width</span></span><br><span class="line">          (<span class="name">rand-in-range</span> <span class="number">0</span> <span class="number">6</span>)))         <span class="comment">; lightness of skin</span></span><br></pre></td></tr></table></figure>
+<p>这里我们定义了一个<code>rand-in-range</code>函数，可以简单地根据给定的数值范围来产生随机整数。然后我们用<code>rand-in-range</code>函数重新定义了<code>make-sea-bass</code>函数和<code>make-salmon</code>函数，从而使用<script type="math/tex">0</script>到<script type="math/tex">10</script>范围内的随机整数来代表鱼的三种特征，长度，宽度和表皮亮度的特征值。例如表皮亮度这一个特征中如果值越大说明表皮越亮颜色越浅。需要注意的是，我们重新定义了<code>make-sea-bass</code>函数和<code>make-salmon</code>函数来生成我们的训练样本，所以与之前定义不同的是，现在我们不再使用set类型来表示一个单独的样本了，而是使用vector类型。</p>
+<p>我们可以使用<code>clj-ml</code>库中的<code>make-classifier</code>函数来创建一个分类器，这个函数在<code>clj-ml.classifers</code>名字空间中。我们可以通过向这个函数传入Clojure关键字的方式来指定分类器的类型。因为我们需要使用贝叶斯分类器，准确的说是朴素贝叶斯分类器，所以我们向<code>make-classifier</code>函数中传入<code>:bayes</code>和<code>:naive</code>两个关键字。简单来说，我们可以使用如下的声明来创建一个贝叶斯分类器。注意到<code>:naive</code>这个关键字用来指定贝叶斯分类器是一个朴素贝叶斯分类器，也就是说在我们的模型中是假定所有的特征都是相互独立的：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">def</span></span> bayes-classifier (<span class="name">make-classifier</span> <span class="symbol">:bayes</span> <span class="symbol">:naive</span>))</span><br></pre></td></tr></table></figure>
+<p><code>clj-ml</code>库中实现的分类器如果要使用我们之前定义的训练数据集，就需要用到<code>clj-ml.data</code>名字空间下的一些函数了。我们可以用<code>make-dataset</code>函数将<code>fish-dataset</code>表示的一串样本序列转换成可以供<code>clj-ml</code>中的分类器使用的数据，其中这个样本序列中的每一个样本都是一个vector类型。这个函数需要一个任意的字符串作为数据集的名字，以及一个用来描述数据集中每一个样本数据结构的模板，还需要最终需要转换的数据集。传递给<code>make-dataset</code>的模板参数可以很容易地使用map类型来实现，如下面代码所示：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">defn</span></span> make-sample-fish []</span><br><span class="line">  (<span class="name"><span class="builtin-name">if</span></span> (<span class="name"><span class="builtin-name">&lt;</span></span> (<span class="name"><span class="builtin-name">rand</span></span>) <span class="number">0.3</span>) (<span class="name">make-sea-bass</span>) (<span class="name">make-salmon</span>)))</span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">def</span></span> fish-training-data</span><br><span class="line">  (<span class="name"><span class="builtin-name">for</span></span> [i (<span class="name"><span class="builtin-name">range</span></span> <span class="number">10000</span>)] (<span class="name">make-sample-fish</span>)))</span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">def</span></span> fish-template</span><br><span class="line">  [&#123;<span class="symbol">:category</span> [<span class="symbol">:salmon</span> <span class="symbol">:sea-bass</span>]&#125;</span><br><span class="line">   <span class="symbol">:length</span> <span class="symbol">:width</span> <span class="symbol">:lightness</span>])</span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">def</span></span> fish-dataset</span><br><span class="line">  (<span class="name">make-dataset</span> <span class="string">"fish"</span> fish-template fish-training-data))</span><br></pre></td></tr></table></figure>
+<p>上面代码中定义的<code>fish-template</code>简答地用一个向量描述了一个鱼的样本数据的结构，由鱼的类别，长度，宽度以及表皮亮度组成。需要注意的是，鱼的类别使用<code>:salmon</code>或者<code>sea-bass</code>来表示。现在我们可以用<code>fish-dataset</code>表示的训练数据去训练由<code>bayes-classifier</code>变量表示的分类器了。</p>
+<p>尽管<code>fish-template</code>定义了鱼的所有属性，但是还缺失一样很重要的细节，就是还没有指定返回的vector类型结果中哪一个属性代表鱼的类别。为了在一个表示属性和类别的数据结构指定这个样本的类别，我们需要使用<code>dataset-set-class</code>函数。这个函数接受一个参数，用来指定传入的vector类型的样本中哪一个索引位置上的值表示鱼的分类类型。需要注意的是这个函数实际上是会修改传入的数据集的，算是一种副作用。然后我们就可以将之前定义过的数据集变量和分类器变量作为参数传入<code>classifier-train</code>函数进行训练了。如下面代码所示：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">defn</span></span> train-bayes-classifier []</span><br><span class="line">  (<span class="name">dataset-set-class</span> fish-dataset <span class="number">0</span>)</span><br><span class="line">  (<span class="name">classifier-train</span> bayes-classifier fish-dataset))</span><br></pre></td></tr></table></figure>
+<p>上面代码中定义的<code>train-bayes-classifier</code>函数只是简单地调用了<code>dataset-set-class</code>函数与<code>classifier-train</code>函数来训练我们的分类器。我们可以在REPL中进行实验，利用训练数据对分类器进行训练之后会打印出训练的结果：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">user&gt; (train-bayes-classifier)</span><br><span class="line">#&lt;NaiveBayes Naive Bayes Classifier</span><br><span class="line"></span><br><span class="line">                  Class</span><br><span class="line">Attribute        salmon sea-bass</span><br><span class="line">                  (<span class="number">0.7</span>)    (<span class="number">0.3</span>)</span><br><span class="line">=================================</span><br><span class="line">length</span><br><span class="line">  mean            3.0079   7.4843</span><br><span class="line">  std. dev.       1.9964   1.1133</span><br><span class="line">  weight sum        6973     3027</span><br><span class="line">  precision            1        1</span><br><span class="line"></span><br><span class="line">width</span><br><span class="line">  mean            6.4996   2.0363</span><br><span class="line">  std. dev.       1.7054   1.4165</span><br><span class="line">  weight sum        6973     3027</span><br><span class="line">  precision            1        1</span><br><span class="line"></span><br><span class="line">lightness</span><br><span class="line">  mean            2.4873     6.48</span><br><span class="line">  std. dev.        1.696   1.7091</span><br><span class="line">  weight sum        6973     3027</span><br><span class="line">  precision            1        1</span><br><span class="line"></span><br><span class="line">&gt;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>输出的训练结果可以帮助我们了解我们的训练数据，比如说在我们模型中各个不同的特征的平均值以及标准差。现在我们可以利用训练好的分类器去根据给定的观察值来预测观测到样本的类别了。</p>
+<p>让我们首先定义我们需要分类的观测样本。我们可以使用<code>make-instance</code>函数，这个函数需要接受两个参数，一个参数是数据集，另一个参数是一个和数据集中单个样本有相同数据格式的需要进行分类的观测样本：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">def</span></span> sample-fish</span><br><span class="line">  (<span class="name">make-instance</span> fish-dataset [<span class="symbol">:salmon</span> <span class="number">5.0</span> <span class="number">6.0</span> <span class="number">3.0</span>])</span><br></pre></td></tr></table></figure>
+<p>至此，我们利用<code>make-instance</code>函数来定义了一个简单的待分类的鱼样本。现在我们可以预测用<code>sample-fish</code>变量表示的鱼样本对应的是哪一个鱼的类别了：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">user&gt; (classifier-classify bayes-classifier sample-fish)</span><br><span class="line"><span class="symbol">:salmon</span></span><br></pre></td></tr></table></figure>
+<p>如上面代码所示，这个鱼样本最终被分类为三文鱼。需要注意的是，我们虽然在定义<code>sample-fish</code>的时候给定了这个待预测的样本的类别是三文鱼，也就是代码中写了<code>:salmon</code>，但是这只是为了符合之前定义的数据集<code>fish-dataset</code>的数据模板结构。事实上我们如果将<code>sample-fish</code>的类别指定为<code>:sea-bass</code>也就是假设为鲈鱼或者一个其他的值比如说<code>:unknown</code>(<em>当然这个值需要定义在之前的数据模板中</em>)来表示未定义的类别，一开始指定的类型只是一种假设，对最终的结果不会产生任何影响，读着可以试验一下，改成<code>:sea-bass</code>之后，分类器仍然会将<code>sample-fish</code>分类为三文鱼。</p>
+<p>假如给定分类模型要处理的特征数据是连续数值，我们一般有两种解决方法，一种是利用概率密度估计的方法，也就是先假设特征值满足某一个概率密度分布，一般假设为一个高斯分布，然后根据给定的训练数据得到该高斯分布的期望与方差，从而可以精确刻画出假设的概率分布模型，从而将新的待预测的特征值放入时就可以求得后验概率。另一种方法则是离散化连续的特征值，离散化连续特征值又分为监督离散化与非监督离散化，监督离散化中常见的方法是使用信息增益理论来进行离散化，类似决策树模型的构建算法，而非监督离散化的常用方法有使用K-means算法来自动聚类。我们可以向<code>make-classifier</code>函数中传入一个额外的map对象参数作为配置参数<code>{:supervised-discretization true}</code>来指定生成的贝叶斯分类器模型使用的是监督离散化方法来离散化连续的特征值。当然其他一些和生成分类器有关的配置选项也可以通过这个额外的配置参数传给<code>make-classifier</code>函数。</p>
+<p>总的来说，<code>clj-ml</code>这个库提供了一个功能完整的贝叶斯分类器模型的实现，利用这个分类器，我们可以对任意的数据进行分类预测。尽管在本章的例子中，我们是自己随机产生训练数据集，但是在真实的环境下，训练数据肯定是从互联网上或者是数据库中获得的。</p>
+
+  </div>
+</article>
+
+
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="http://zjhmale.github.io" target="_blank" rel="noopener">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/zjhmale" target="_blank" rel="noopener">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#理解贝叶斯分类"><span class="toc-number">1.</span> <span class="toc-text">理解贝叶斯分类</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/" target="_blank" rel="noopener"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/&text=cljmlchapter3-category data" target="_blank" rel="noopener"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/&title=cljmlchapter3-category data" target="_blank" rel="noopener"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/&is_video=false&description=cljmlchapter3-category data" target="_blank" rel="noopener"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=cljmlchapter3-category data&body=Check out this article: http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/&title=cljmlchapter3-category data" target="_blank" rel="noopener"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/&title=cljmlchapter3-category data" target="_blank" rel="noopener"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/&title=cljmlchapter3-category data" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/&title=cljmlchapter3-category data" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/&name=cljmlchapter3-category data&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://yoursite.com/2014/08/08/2014-08-08-cljmlchapter3-category-data/&t=cljmlchapter3-category data" target="_blank" rel="noopener"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2013-2020
+    Zheng Jihui
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="http://zjhmale.github.io" target="_blank" rel="noopener">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/zjhmale" target="_blank" rel="noopener">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+
+    <!-- jquery -->
+
+<script src="/lib/jquery/jquery.min.js"></script>
+
+
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+
+<!-- clipboard -->
+
+  
+<script src="/lib/clipboard/clipboard.min.js"></script>
+
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Disqus Comments --><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+</body>
+</html>

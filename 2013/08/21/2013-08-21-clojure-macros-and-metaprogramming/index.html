@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- hexo-inject:begin --><!-- hexo-inject:end --><!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="Clojure是一种lisp的方言，拥有纯正的lisp血统，所以传统lisp的特性，Clojure同样具备。其中一个强大的特性就是宏(macro)，一种可以利用元编程之力的特性。相对于其他具有元编程能力的语言(比如ruby)来说，Clojure利用宏来进行meta programming会更加的优雅简洁。在Clojure中，元编程并不只是意味着产生字符串，相反的，这意味着构建一颗新的语法树(S-e">
+<meta property="og:type" content="article">
+<meta property="og:title" content="clojure macros and metaprogramming">
+<meta property="og:url" content="http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/index.html">
+<meta property="og:site_name" content="">
+<meta property="og:description" content="Clojure是一种lisp的方言，拥有纯正的lisp血统，所以传统lisp的特性，Clojure同样具备。其中一个强大的特性就是宏(macro)，一种可以利用元编程之力的特性。相对于其他具有元编程能力的语言(比如ruby)来说，Clojure利用宏来进行meta programming会更加的优雅简洁。在Clojure中，元编程并不只是意味着产生字符串，相反的，这意味着构建一颗新的语法树(S-e">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2013-08-21T01:44:20.000Z">
+<meta property="article:modified_time" content="2020-05-05T11:47:32.398Z">
+<meta property="article:author" content="Zheng Jihui">
+<meta property="article:tag" content="Functional Programming">
+<meta property="article:tag" content="clojure">
+<meta name="twitter:card" content="summary">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>clojure macros and metaprogramming</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+      
+<link rel="stylesheet" href="/css/rtl.css">
+
+    
+    <!-- rss -->
+    
+    
+<meta name="generator" content="Hexo 4.2.0"><!-- hexo-inject:begin --><!-- hexo-inject:end --></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <!-- hexo-inject:begin --><!-- hexo-inject:end --><div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="http://zjhmale.github.io" target="_blank" rel="noopener">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/zjhmale" target="_blank" rel="noopener">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2013/12/10/2013-12-10-xie-fang-chai-ju-zhen-on-python/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2013/07/19/2013-07-19-laziness-in-clojure/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/" target="_blank" rel="noopener"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/&text=clojure macros and metaprogramming" target="_blank" rel="noopener"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/&title=clojure macros and metaprogramming" target="_blank" rel="noopener"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/&is_video=false&description=clojure macros and metaprogramming" target="_blank" rel="noopener"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=clojure macros and metaprogramming&body=Check out this article: http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/&title=clojure macros and metaprogramming" target="_blank" rel="noopener"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/&title=clojure macros and metaprogramming" target="_blank" rel="noopener"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/&title=clojure macros and metaprogramming" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/&title=clojure macros and metaprogramming" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/&name=clojure macros and metaprogramming&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/&t=clojure macros and metaprogramming" target="_blank" rel="noopener"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#编译器与运行期"><span class="toc-number">1.</span> <span class="toc-text">编译器与运行期</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#clojure解析器-clojure-reader"><span class="toc-number">2.</span> <span class="toc-text">clojure解析器(clojure reader)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#特殊形式-Special-Forms"><span class="toc-number">3.</span> <span class="toc-text">特殊形式(Special Forms)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#牛刀小试"><span class="toc-number">4.</span> <span class="toc-text">牛刀小试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Quote"><span class="toc-number">5.</span> <span class="toc-text">Quote</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Unquote"><span class="toc-number">6.</span> <span class="toc-text">Unquote</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Unquote-splicing"><span class="toc-number">7.</span> <span class="toc-text">Unquote-splicing</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Macro-Hygiene-and-gensym"><span class="toc-number">8.</span> <span class="toc-text">Macro Hygiene and gensym</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Namespace-Qualification-Within-Syntax-Quote"><span class="toc-number">9.</span> <span class="toc-text">Namespace Qualification Within Syntax Quote</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Generated-Symbols-gensyms"><span class="toc-number">10.</span> <span class="toc-text">Generated Symbols(gensyms)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#宏扩展-Macroexpansions"><span class="toc-number">11.</span> <span class="toc-text">宏扩展(Macroexpansions)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Full-Macroexpansion"><span class="toc-number">12.</span> <span class="toc-text">Full Macroexpansion</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Quote-与-Syntax-Quote-的不同之处"><span class="toc-number">13.</span> <span class="toc-text">Quote 与 Syntax Quote 的不同之处</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Security-Considerations"><span class="toc-number">14.</span> <span class="toc-text">Security Considerations</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Special-Forms-in-Detail"><span class="toc-number">15.</span> <span class="toc-text">Special Forms in Detail</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        clojure macros and metaprogramming
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name"></span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2013-08-21T01:44:20.000Z" itemprop="datePublished">2013-08-21</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link" href="/tags/Functional-Programming/" rel="tag">Functional Programming</a>, <a class="tag-link" href="/tags/clojure/" rel="tag">clojure</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>Clojure是一种lisp的方言，拥有纯正的lisp血统，所以传统lisp的特性，Clojure同样具备。其中一个强大的特性就是<strong>宏(macro)</strong>，一种可以利用元编程之力的特性。相对于其他具有元编程能力的语言(比如ruby)来说，Clojure利用宏来进行meta programming会更加的优雅简洁。在Clojure中，元编程并不只是意味着产生字符串，相反的，这意味着构建一颗新的语法树(S-expressions, 或者lists)，因为lisp中抽象语法树就是用s表达式来描述的。使用宏也意味着Clojure有强大的DSL(domain-specific-language)构建能力。</p>
+<h2 id="编译器与运行期"><a href="#编译器与运行期" class="headerlink" title="编译器与运行期"></a>编译器与运行期</h2><p>Clojure是一个编译型语言，编译器将源程序读入，得到抽象语法树(AST)，然后执行宏扩展。所以宏是在编译器被执行求值的，并且最终生成由宏规定的AST，与普通程序一样，最终被编译成JVM字节码，由JVM在运行期统一执行这些生成的字节码。</p>
+<p>Clojure代码可以使用<code>clojure.core/load</code>或者<code>clojure.core/require</code>进行编译，或者使用构建工具，比如<a href="http://leiningen.org/" target="_blank" rel="noopener">Leiningen</a>或者<a href="https://github.com/talios/clojure-maven-plugin" target="_blank" rel="noopener">Clojure maven plugin</a>，我自己更喜欢用Leiningen，maven从写Java那伙就没怎么用过(可能是一直没做过特别大的项目吧= =)。</p>
+<h2 id="clojure解析器-clojure-reader"><a href="#clojure解析器-clojure-reader" class="headerlink" title="clojure解析器(clojure reader)"></a>clojure解析器(clojure reader)</h2><p>Reader只是Parser的一个别称。与其他语言不同，Clojure中的Reader可以扩展语言本身。可以使用<code>clojure.core/read</code>或者<code>clojure.core/read-string</code>函数将普通的字符串源代码以数据结构的形式暴露给语言本身。</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">user&gt; (read-string "(if true :truth :false)")</span><br><span class="line"><span class="comment">;; here we get back a list that is not evaluated</span></span><br><span class="line"><span class="comment">;= (if true :truth :false)</span></span><br><span class="line"></span><br><span class="line">user&gt; (eval (read-string "(if true :truth :false)"))</span><br><span class="line"><span class="comment">;; here we get back a result that is evaluated</span></span><br><span class="line"><span class="comment">;= :true</span></span><br></pre></td></tr></table></figure>
+<p>使用Reader得到数据结构之后，就可以对这个结果进行求值啦(这也是为什么在lisp中代码和数据是没有本质区别的)，求值的基本规则如下</p>
+<ul>
+<li>基础的数据类型(strings integers vectors)会直接对齐本身求值，得到相应的值</li>
+<li>列表会将第一个元素当做函数，后续的元素作为参数，求值得到结果</li>
+<li>Symbols(使用def定义的)会求值得到其定义时绑定的值</li>
+</ul>
+<p>表达式可以以<em>forms</em>的形式来进行求值，Forms由如下元素组成</p>
+<ul>
+<li>函数(Functions)</li>
+<li>宏(Macros)</li>
+<li>特殊形式(Special forms)</li>
+</ul>
+<h2 id="特殊形式-Special-Forms"><a href="#特殊形式-Special-Forms" class="headerlink" title="特殊形式(Special Forms)"></a>特殊形式(Special Forms)</h2><p>Reader会使用一些特殊的方式解析一些特殊的forms，这些forms叫做<strong>special forms</strong>，由以下一些元素组成</p>
+<ul>
+<li>.(一个dot，也是一种特殊的form哦)</li>
+<li>new</li>
+<li>set!</li>
+<li>def</li>
+<li>var</li>
+<li>fn*(不使用解构的<code>fn</code>)</li>
+<li>if</li>
+<li>case*(<code>case</code>的内部实现)</li>
+<li>do</li>
+<li>let*(不使用解构的<code>let</code>)</li>
+<li>letfn*(不使用解构的<code>letfn</code>)</li>
+<li>clojure.core/import*(<code>import</code>)</li>
+<li>quote</li>
+<li>loop*(不使用解构的<code>loop</code>)</li>
+<li>recur</li>
+<li>throw, try, catch, finally</li>
+<li>deftype*(deftype的内部实现)</li>
+<li>reify*(<code>reify</code>的内部实现)</li>
+<li>monitor-enter, monitor-exit</li>
+</ul>
+<p>有一些特殊形式可以直接在代码中使用(比如<code>do</code>和<code>if</code>)，而另一些特殊形式则是用于构建更易用的接口(比如使用<code>deftype*</code>特殊形式来构建<code>deftype</code>)</p>
+<h2 id="牛刀小试"><a href="#牛刀小试" class="headerlink" title="牛刀小试"></a>牛刀小试</h2><p>一些语言中有与<code>if</code>逻辑原语相反的<code>unless</code>表达式。Clojure中并不原生支持，但是可以使用宏轻松实现一个</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">defmacro</span></span> unless</span><br><span class="line">  <span class="string">"Similar to if but negates the condition"</span></span><br><span class="line">  [condition &amp; forms]</span><br><span class="line">  `(<span class="name"><span class="builtin-name">if</span></span> (<span class="name"><span class="builtin-name">not</span></span> ~condition)</span><br><span class="line">     ~@forms))</span><br></pre></td></tr></table></figure>
+<p>可以使用<code>clojure.core/defmacro</code>函数定义一个宏，上面代码中定义的<code>unless</code>宏可以像<code>if</code>表达式一样直接使用</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name">unless</span> (<span class="name"><span class="builtin-name">=</span></span> <span class="number">1</span> <span class="number">2</span>)</span><br><span class="line">  <span class="string">"one does not equal two"</span></span><br><span class="line">  <span class="string">"one equals two. How come?"</span>)</span><br></pre></td></tr></table></figure>
+<p>我们可以使用<code>clojure.core/macroexpand-1</code>来看看一个宏是如何展开的</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">macroexpand-1</span></span> '(<span class="name">unless</span> (<span class="name"><span class="builtin-name">=</span></span> <span class="number">1</span> <span class="number">2</span>) <span class="literal">true</span> <span class="literal">false</span>))</span><br><span class="line"><span class="comment">;= (if (clojure.core/not (= 1 2)) true false)</span></span><br></pre></td></tr></table></figure>
+<p>下面再看一个利用宏将代码当数据操作的例子</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">defmacro</span></span> postfix-notation</span><br><span class="line">  <span class="string">"I'm too indie for prefix notation"</span></span><br><span class="line">  [expression]</span><br><span class="line">  (<span class="name"><span class="builtin-name">conj</span></span> (<span class="name"><span class="builtin-name">butlast</span></span> expression) (<span class="name"><span class="builtin-name">last</span></span> expression)))</span><br><span class="line"></span><br><span class="line">(<span class="name">postfix-notation</span> (<span class="number">1</span> <span class="number">1</span> +))</span><br><span class="line"><span class="comment">;= 2</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">macroexpand-1</span></span> '(<span class="name">postfix-notation</span> (<span class="number">1</span> <span class="number">1</span> +)))</span><br><span class="line"><span class="comment">;= (+ 1 1)</span></span><br></pre></td></tr></table></figure>
+<p>而如果这个使用<code>defn</code>来实现的话就会很蛋疼</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">defn</span></span> postfix-notation-fn</span><br><span class="line">  [expression]</span><br><span class="line">  (<span class="name"><span class="builtin-name">conj</span></span> (<span class="name"><span class="builtin-name">butlast</span></span> expression) (<span class="name"><span class="builtin-name">last</span></span> expression)))</span><br><span class="line"></span><br><span class="line">(<span class="name">postfix-notation-fn</span> (<span class="number">1</span> <span class="number">1</span> +))</span><br><span class="line"><span class="comment">;= java.lang.ClassCastException: java.lang.Long cannot be cast to clojure.lang.IFn</span></span><br><span class="line"></span><br><span class="line">(<span class="name">postfix-notation-fn</span> '(<span class="number">1</span> <span class="number">1</span> +))</span><br><span class="line"><span class="comment">;= (+ 1 1)</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">eval</span></span> (<span class="name">postfix-notation-fn</span> '(<span class="number">1</span> <span class="number">1</span> +)))</span><br><span class="line"><span class="comment">;= 2</span></span><br></pre></td></tr></table></figure>
+<p>可以看到如果定义成函数的话，要将表达式作为参数传入只能先quote住，不然在作为参数传入的过程中，就被求值了，而返回的结果也需要eval之后才能得到最终的求值结果，而宏的话不仅可以传入表达式参数，而且最后返回的只要是一个list，那最终都会自动展开求值并返回结果</p>
+<p>当使用宏编程时，有几样工具是必须要掌握的</p>
+<ul>
+<li>Quote(‘)</li>
+<li>Syntax quote(`)</li>
+<li>Unquote(~)</li>
+<li>Unquote splicing(~@)</li>
+</ul>
+<h2 id="Quote"><a href="#Quote" class="headerlink" title="Quote"></a>Quote</h2><p>Quote抑制了表达式的求值作用，只是将代码单纯地当做数据贮存在内存中。可以看一个例子</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">;; this form is evaluated by calling the clojure.core/+ function</span></span><br><span class="line">(<span class="name"><span class="builtin-name">+</span></span> <span class="number">1</span> <span class="number">2</span> <span class="number">3</span>)</span><br><span class="line"><span class="comment">;= 6</span></span><br><span class="line"><span class="comment">;; quote supresses evaluation so the + is treated as a regular</span></span><br><span class="line"><span class="comment">;; list element</span></span><br><span class="line">'(+ 1 2 3)</span><br><span class="line"><span class="comment">;= (+ 1 2 3)</span></span><br><span class="line">`(+ 1 2 3)</span><br><span class="line"><span class="comment">;= (clojure.core/+ 1 2 3)</span></span><br></pre></td></tr></table></figure>
+<p>quote和syntax quote的主要区别在于syntax quote可以加上名字空间(namespace)，这可以有效地避免名字冲突，另一个使用syntax quote的好处是，在syntax quote中我们还可以使用unquote操作来对某一些特定的部分求值，而不是对印制整一个表达式的求值，在需要的部分我们可以局部唤醒，使用syntax quote可以说是做了一个模板，决定了哪一部分是固定的，而哪一部分是变化的需要求值的。</p>
+<h2 id="Unquote"><a href="#Unquote" class="headerlink" title="Unquote"></a>Unquote</h2><p>Unquote可以在syntax quote中强制求值，我们可以稍微改造一下上面的例子看一下如果没有unquote会怎么样</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">;; incorrect, missing unquote!</span></span><br><span class="line">(<span class="name"><span class="builtin-name">defmacro</span></span> unless</span><br><span class="line">  [condition &amp; forms]</span><br><span class="line">  `(<span class="name"><span class="builtin-name">if</span></span> (<span class="name"><span class="builtin-name">not</span></span> condition)</span><br><span class="line">     ~@forms))</span><br><span class="line"><span class="comment">;= clojure.lang.Compiler$CompilerException: java.lang.RuntimeException: No such var: lazyseq.core/condition, compiling:(/private/var/folders/00/0rkbg5r53cz7zs4gzbp6hc7m0000gn/T/form-init583513466025470119.clj:1:1)</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">macroexpand-1</span></span> '(<span class="name">unless</span> (<span class="name"><span class="builtin-name">=</span></span> <span class="number">1</span> <span class="number">2</span>) <span class="literal">true</span> <span class="literal">false</span>))</span><br><span class="line"><span class="comment">;= (if (clojure.core/not user/condition) true false)</span></span><br></pre></td></tr></table></figure>
+<p>可以看到如果没有unqute的话，就会将condition作为外部代码中的一个symbol了，就会从当前名字空间中搜寻这个symbol，所以我们需要用unquote来强制唤醒其对应的值，也就是我们传入的表达式，unquote的表示方法其实只是<code>clojure.core/unquote</code>的语法糖。</p>
+<h2 id="Unquote-splicing"><a href="#Unquote-splicing" class="headerlink" title="Unquote-splicing"></a>Unquote-splicing</h2><p>有一些需要用到多个forms，正在构建DSLs的时候非常常见，这样的话就需要把每一个form都先quote住，然后再将它们拼接起来，非常的麻烦，但是使用unquote-splicing(<code>~@</code>)可以让这一切都异常优雅</p>
+<p>依然可以改造之前的例子，看一下没有unquote-splicing会怎么样</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">defmacro</span></span> unless-withoutsplicing</span><br><span class="line">  [condition &amp; forms]</span><br><span class="line">  `(<span class="name"><span class="builtin-name">if</span></span> (<span class="name"><span class="builtin-name">not</span></span> ~condition)</span><br><span class="line">     ~forms))</span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">macroexpand</span></span> '(<span class="name">unless-withoutsplicing</span> <span class="literal">true</span></span><br><span class="line">                                     <span class="symbol">:true</span></span><br><span class="line">                                     <span class="symbol">:false</span>))</span><br><span class="line"><span class="comment">;= (if (clojure.core/not true) (:true :false))</span></span><br></pre></td></tr></table></figure>
+<p>可以看到如果没有unquote-splicing的话，那么多个form并不会组成一个预期希望的形式，而是按照它们在被传值是就被确定的那个样子</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">user&gt; (defmacro unsplice</span><br><span class="line">        [&amp; coll]</span><br><span class="line">        `(do ~@coll))</span><br><span class="line"><span class="comment">;= #'user/unsplice</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">macroexpand-1</span></span> '(<span class="name">unsplice</span> (<span class="name"><span class="builtin-name">def</span></span> a <span class="number">1</span>) (<span class="name"><span class="builtin-name">def</span></span> b <span class="number">2</span>)))</span><br><span class="line"><span class="comment">;= (do (def a 1) (def b 2))</span></span><br><span class="line"></span><br><span class="line">(<span class="name">unsplice</span> (<span class="name"><span class="builtin-name">def</span></span> a <span class="number">1</span>) (<span class="name"><span class="builtin-name">def</span></span> b <span class="number">2</span>))</span><br><span class="line"><span class="comment">;= #'user/b</span></span><br><span class="line"></span><br><span class="line">a</span><br><span class="line"><span class="comment">;= 1</span></span><br><span class="line">b</span><br><span class="line"><span class="comment">;= 2</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">defmacro</span></span> unsplice-withoutsplice</span><br><span class="line">  [&amp; coll]</span><br><span class="line">  `(<span class="name"><span class="builtin-name">do</span></span> ~coll))</span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">macroexpand-1</span></span> '(<span class="name">unsplice-withoutsplice</span> (<span class="name"><span class="builtin-name">def</span></span> a <span class="number">1</span>) (<span class="name"><span class="builtin-name">def</span></span> b <span class="number">2</span>)))</span><br><span class="line"><span class="comment">;= (do ((def a 1) (def b 2)))</span></span><br></pre></td></tr></table></figure>
+<p>再通过一个例子可以更加深入的了解到有了unquote-splicing的好处，这样我们就不需要额外的手动去讲多个form从参数中抽离出来，然后再拼接成一个可以被丢出来执行的表达式，我们仅仅只需要使用<code>~@</code>这一个宏就行了</p>
+<p>和unquote类似unquote-splicing是<code>clojure.core/unquote-splicing</code>的语法糖</p>
+<h2 id="Macro-Hygiene-and-gensym"><a href="#Macro-Hygiene-and-gensym" class="headerlink" title="Macro Hygiene and gensym"></a>Macro Hygiene and gensym</h2><p>有时候在编写宏的时候可能会需要与外部定义的局部变量交互。但是大部分语言都会将变量的包裹在一层一层的作用域中，而这样的宏也被叫做<em>unhygienic macros</em></p>
+<p>先看两篇wiki</p>
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/Variable_shadowing" target="_blank" rel="noopener">Variable shadowing</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Hygienic_macro" target="_blank" rel="noopener">Hygienic macro</a></li>
+</ul>
+<p>首先来说下啥是Variable shadowing，其实这就是正常程序员理解的作用域，也就是说当两个变量名字相同的时候，内层变量拥有执行权从而屏蔽了外层变量。用wiki上的那个例子就可以很好的理解怎么一回事了</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">v = <span class="number">1</span> <span class="comment">-- a global variable</span></span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">  <span class="keyword">local</span> v = v+<span class="number">1</span> <span class="comment">-- creates new local that shadows global v</span></span><br><span class="line">  <span class="built_in">print</span>(v) <span class="comment">--&gt; 2</span></span><br><span class="line">  <span class="keyword">do</span></span><br><span class="line">    <span class="keyword">local</span> v = v*<span class="number">2</span> <span class="comment">-- another local that shadows</span></span><br><span class="line">    <span class="built_in">print</span>(v) <span class="comment">--&gt; 4</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">  <span class="built_in">print</span>(v) <span class="comment">--&gt; 2</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"><span class="built_in">print</span>(v) <span class="comment">--&gt; 1</span></span><br></pre></td></tr></table></figure>
+<p>再来看看啥是Hygienic macro，其实就是这个宏可以直接访问外部的symbol，而不会为宏里面的任何symbol建立一块单独的作用域从而屏蔽了外部的symbol</p>
+<p>仍然是wiki上的例子，假如是一个unhygienic macro，比如是c中的宏，那么一种常见的情况就是</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> INCI(i) &#123;int a=0; ++i;&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> a = <span class="number">0</span>, b = <span class="number">0</span>;</span><br><span class="line">    INCI(a);</span><br><span class="line">    INCI(b);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"a is now %d, b is now %d\n"</span>, a, b);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面这段c代码在预编译期会被扩展为如下形式</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> a = <span class="number">0</span>, b = <span class="number">0</span>;</span><br><span class="line">    &#123;<span class="keyword">int</span> a=<span class="number">0</span>; ++a;&#125;;</span><br><span class="line">    &#123;<span class="keyword">int</span> a=<span class="number">0</span>; ++b;&#125;;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"a is now %d, b is now %d\n"</span>, a, b);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到预编译展开之后其实最外层作用域的a变量其实是被内部scope的a给屏蔽了，自加操作最终并没有作用到这个变量上，最终执行的结果也不是我们希望看到的</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a is now <span class="number">1</span>, b is now <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>在c中为了解决这个问题最好的方式就是在宏内部不要有和外部作用域重名的变量存在，这在自己玩玩的逗逼小程序里的确make sense，但是你如果是接手其他人留下来的庞大工程，或者是自己几个月前写的东西，你还敢写宏么</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> INCI(i) &#123;int INCIa=0; ++i;&#125;</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> a = <span class="number">0</span>, b = <span class="number">0</span>;</span><br><span class="line">    INCI(a);</span><br><span class="line">    INCI(b);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"a is now %d, b is now %d\n"</span>, a, b);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>结果就是正常的了</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a is now <span class="number">1</span>, b is now <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>明白了上面两个概念之后，我们再回到Clojure，Clojure中为实现hygienic macros而制定两种约束</p>
+<ul>
+<li>在syntax quote中的symbol是名字空间限定的，也就是说其中的symbol都是在当前外部名字空间中的</li>
+<li>如果在宏中想使用和外部名字空间相同的名字而又不想屏蔽外部的symbol，可以使用gensyms机制</li>
+</ul>
+<h2 id="Namespace-Qualification-Within-Syntax-Quote"><a href="#Namespace-Qualification-Within-Syntax-Quote" class="headerlink" title="Namespace Qualification Within Syntax Quote"></a>Namespace Qualification Within Syntax Quote</h2><figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">defmacro</span></span> yes-no-&gt;boolean</span><br><span class="line">  [val]</span><br><span class="line">  `(<span class="name"><span class="builtin-name">let</span></span> [b (<span class="name"><span class="builtin-name">=</span></span> ~val <span class="string">"yes"</span>)]</span><br><span class="line">    b))</span><br><span class="line"><span class="comment">;= #'user/yes-no-&gt;boolean</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">macroexpand-1</span></span> '(<span class="name">yes-no-&gt;boolean</span> <span class="string">"yes"</span>))</span><br><span class="line"><span class="comment">;= (clojure.core/let [user/b (clojure.core/= "yes" "yes")] user/b)</span></span><br><span class="line"></span><br><span class="line">(<span class="name">yes-no-&gt;boolean</span> <span class="string">"yes"</span>)</span><br><span class="line"><span class="comment">;= clojure.lang.Compiler$CompilerException: java.lang.RuntimeException: Can't let qualified name: lazyseq.core/b, compiling:(/private/var/folders/00/0rkbg5r53cz7zs4gzbp6hc7m0000gn/T/form-init583513466025470119.clj:1:1)</span></span><br></pre></td></tr></table></figure>
+<p>可以看到因为Clojure中的宏可以直接capture到外部名字空间的symbol，所以运行期就出错啦，因为我们在外部根本没有定义这么一个symbol，所以如果我们想使用这个宏就要用到gensyms机制了</p>
+<h2 id="Generated-Symbols-gensyms"><a href="#Generated-Symbols-gensyms" class="headerlink" title="Generated Symbols(gensyms)"></a>Generated Symbols(gensyms)</h2><p>自动名字空间生成(Automatic namespace generation)机制在一些情况下是起作用的，但不是所有情况。有时候我们希望在宏的作用域内symbol的名字可以是独一无二的。</p>
+<p>独一无二的symbol名字(Unique symbols names)可以使用<code>clojure.core/gensym</code>函数生成</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">gensym</span></span>)</span><br><span class="line"><span class="comment">;= G__54</span></span><br><span class="line">(<span class="name"><span class="builtin-name">gensym</span></span> <span class="string">"base"</span>)</span><br><span class="line"><span class="comment">;= base57</span></span><br></pre></td></tr></table></figure>
+<p><code>gensym</code>当然是有语法糖的，在syntax quote中使用<code>#</code>就可以自动调用<code>gensym</code></p>
+<p>修改上面那个出错的例子</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">defmacro</span></span> yes-no-&gt;boolean</span><br><span class="line">  [val]</span><br><span class="line">  `(<span class="name"><span class="builtin-name">let</span></span> [b# (<span class="name"><span class="builtin-name">=</span></span> ~val <span class="string">"yes"</span>)]</span><br><span class="line">     b#))</span><br><span class="line"><span class="comment">;= #'user/yes-no-&gt;boolean</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">macroexpand-1</span></span> '(<span class="name">yes-no-&gt;boolean</span> <span class="string">"yes"</span>))</span><br><span class="line"><span class="comment">;= (clojure.core/let [b__148__auto__ (clojure.core/= "yes" "yes")] b__148__auto__)</span></span><br><span class="line"></span><br><span class="line">(<span class="name">yes-no-&gt;boolean</span> <span class="string">"yes"</span>)</span><br><span class="line"><span class="comment">;= true</span></span><br></pre></td></tr></table></figure>
+<p><code>b__148__auto__</code>这个名字是由编译器产生的，用于避免屏蔽外部的名字，是一个unique symbol name。</p>
+<h2 id="宏扩展-Macroexpansions"><a href="#宏扩展-Macroexpansions" class="headerlink" title="宏扩展(Macroexpansions)"></a>宏扩展(Macroexpansions)</h2><p>在写宏的时候一个很重要的调试技巧就是看看这个宏在编译器展开成什么东西了，以防其在运行期执行时崩溃，能进行宏展开的操作工具基本有下面三种</p>
+<ul>
+<li><code>clojure.core/macroexpand-1</code></li>
+<li><code>clojure.core/macroexpand</code></li>
+<li><code>clojure.walk/macroexpand-all</code></li>
+</ul>
+<p><code>macroexpand-1</code>和<code>macroexpand</code>之间的区别就是，<code>macroexpand-1</code>只会展开一阶宏，假如宏的返回时返回的那个list中还调用了其他的宏，那么是没法用<code>macroexpand-1</code>展开的。但是<code>macroexpand</code>就可以持续展开宏，直到看不到任何新的宏位置。</p>
+<p>当然要展开一个宏，首先要quote住，不然它可以自己先求值了</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">macroexpand</span></span> '(<span class="name"><span class="builtin-name">and</span></span> <span class="literal">true</span> <span class="literal">false</span> <span class="literal">true</span>))</span><br></pre></td></tr></table></figure>
+<p>使用宏展开我们可以发现<code>out</code>其实是一个宏，是利用<code>if</code>以及<code>let*</code>等special form写成的</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">user&gt; (macroexpand '(and true false true))</span><br><span class="line"><span class="comment">;; formatted for readability</span></span><br><span class="line">(<span class="name">let*</span> [and__3822__auto__ <span class="literal">true</span>]</span><br><span class="line">  (<span class="name"><span class="builtin-name">if</span></span> and__3822__auto__</span><br><span class="line">      (<span class="name">clojure.core/and</span> <span class="literal">false</span> <span class="literal">true</span>)</span><br><span class="line">      and__3822__auto__))</span><br><span class="line"></span><br><span class="line">user&gt; (macroexpand '(and true))</span><br><span class="line"><span class="literal">true</span></span><br></pre></td></tr></table></figure>
+<p>下面举一个小例子来看<code>macroexpand</code>比<code>macroexpand-1</code>牛逼在哪里</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">defmacro</span></span> remote-macro</span><br><span class="line">  []</span><br><span class="line">  `(<span class="name"><span class="builtin-name">str</span></span> <span class="string">"cleantha"</span>))</span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">defmacro</span></span> current-macro</span><br><span class="line">  []</span><br><span class="line">  `(<span class="name">remote-macro</span>))</span><br><span class="line"></span><br><span class="line">(<span class="name">current-macro</span>)</span><br><span class="line"><span class="comment">;= "cleantha"</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">macroexpand-1</span></span> '(<span class="name">current-macro</span>))</span><br><span class="line"><span class="comment">;= (lazyseq.core/remote-macro)</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">macroexpand</span></span> '(<span class="name">current-macro</span>)</span><br><span class="line"><span class="comment">;= (clojure.core/str cleantha)</span></span><br></pre></td></tr></table></figure>
+<p>从上面应该可以知道区别了</p>
+<h2 id="Full-Macroexpansion"><a href="#Full-Macroexpansion" class="headerlink" title="Full Macroexpansion"></a>Full Macroexpansion</h2><p><code>macroexpansion-1</code>和<code>macroexpand</code>都没办法展开一个嵌套的form，也就是一个嵌套的宏，所谓的嵌套也就是在一个宏内部有调用了宏，已递归形式嵌套了，那么就只能是用<code>clojure.walk/macroexpand-all</code>来展开了，但是这个函数不是在Clojure的核心库中，并且貌似和编译器行为也不太一致。</p>
+<p>下面依然使用几个例子说明</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">user=&gt; (macroexpand-1 '(-&gt; c (+ 3) (* 2)))</span><br><span class="line">(<span class="name">clojure.core/-&gt;</span> (<span class="name">clojure.core/-&gt;</span> c (<span class="name"><span class="builtin-name">+</span></span> <span class="number">3</span>)) (<span class="name"><span class="builtin-name">*</span></span> <span class="number">2</span>))</span><br><span class="line"></span><br><span class="line">user=&gt; (macroexpand '(-&gt; c (+ 3) (* 2)))</span><br><span class="line">(<span class="name"><span class="builtin-name">*</span></span> (<span class="name">clojure.core/-&gt;</span> c (<span class="name"><span class="builtin-name">+</span></span> <span class="number">3</span>)) <span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">user=&gt; (use 'clojure.walk)</span><br><span class="line">user=&gt; (macroexpand-all '(-&gt; c (+ 3) (* 2)))</span><br><span class="line">(<span class="name"><span class="builtin-name">*</span></span> (<span class="name"><span class="builtin-name">+</span></span> c <span class="number">3</span>) <span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">macroexpand</span></span> '(<span class="name"><span class="builtin-name">..</span></span> arm getHand getFinger))</span><br><span class="line"><span class="comment">;= (. (. arm getHand) getFinger)</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">macroexpand</span></span> '(<span class="name"><span class="builtin-name">-&gt;</span></span> arm getHand getFinger))</span><br><span class="line"><span class="comment">;= (getFinger (clojure.core/-&gt; arm getHand))</span></span><br></pre></td></tr></table></figure>
+<p>但是其实<code>-&gt;</code>这个宏在clojure1.6.0版本中已经可以用<code>macroexpand</code>和<code>macroexpand-1</code>完全展开了，上面的问题只出现在1.6之前的版本中，所以实际用的时候几个都试试，不用死扣这些细节</p>
+<p>下面国外一个老哥回答的挺好的</p>
+<blockquote>
+<p>macroexpand does not expand macros in subforms, so (-&gt; arm getHand getFinger) expands to (clojure.core/-&gt; (clojure.core/-&gt; arm getHand) getFinger) which expands (because -&gt; is a macro) to (getFinger (clojure.core/-&gt; arm getHand)). The expansion stops here because getFinger is not a macro.</p>
+</blockquote>
+<ul>
+<li><a href="http://stackoverflow.com/questions/4304424/clojure-macroexpand" target="_blank" rel="noopener">出处</a></li>
+</ul>
+<h2 id="Quote-与-Syntax-Quote-的不同之处"><a href="#Quote-与-Syntax-Quote-的不同之处" class="headerlink" title="Quote 与 Syntax Quote 的不同之处"></a>Quote 与 Syntax Quote 的不同之处</h2><p>上面已经提过了两种抑制求值方法的不同之处，这里再总结一下子</p>
+<ul>
+<li>syntax quote会带上名字空间避免名字冲突</li>
+<li>syntax quote中可以使用unquote操作来唤醒特定的求值操作</li>
+</ul>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">defmacro</span></span> yes-no-&gt;boolean-quote</span><br><span class="line">  [val]</span><br><span class="line">  '(<span class="name"><span class="builtin-name">let</span></span> [b# (<span class="name"><span class="builtin-name">=</span></span> ~val <span class="string">"yes"</span>)]</span><br><span class="line">     b#))</span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">macroexpand</span></span> '(<span class="name">yes-no-&gt;boolean-quote</span> <span class="string">"yes"</span>))</span><br><span class="line"><span class="comment">;= (let* [b# (= (clojure.core/unquote val) yes)] b#)</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">defmacro</span></span> yes-no-&gt;boolean</span><br><span class="line">  [val]</span><br><span class="line">  `(<span class="name"><span class="builtin-name">let</span></span> [b# (<span class="name"><span class="builtin-name">=</span></span> ~val <span class="string">"yes"</span>)]</span><br><span class="line">     b#))</span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">macroexpand</span></span> '(<span class="name">yes-no-&gt;boolean</span> <span class="string">"yes"</span>))</span><br><span class="line"><span class="comment">;= (let* [b__1390__auto__ (clojure.core/= yes yes)] b__1390__auto__)</span></span><br></pre></td></tr></table></figure>
+<p>此外还有<code>~&#39;</code>和<code>&#39;~</code>这两个操作，其中<code>~&#39;</code>和<code>gensym</code>的操作非常相似，就是可以在宏中定义一个局部作用域屏蔽外部名字空间中的symbol，<code>&#39;~</code>操作则是可以获取传入参数的形式名字，而不是一个带有名字空间限定的名字，看下面两个例子就能明白了</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">defmacro</span></span> yes-no-&gt;boolean-another</span><br><span class="line">  [val]</span><br><span class="line">  `(<span class="name"><span class="builtin-name">let</span></span> [~'b (<span class="name"><span class="builtin-name">=</span></span> ~val <span class="string">"yes"</span>)]</span><br><span class="line">     ~'b))</span><br><span class="line"></span><br><span class="line">(<span class="name">yes-no-&gt;boolean-another</span> <span class="string">"yes"</span>)</span><br><span class="line"><span class="comment">;= true</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">macroexpand-1</span></span> '(<span class="name">yes-no-&gt;boolean-another</span> <span class="string">"yes"</span>))</span><br><span class="line"><span class="comment">;= (clojure.core/let [b (clojure.core/= yes yes)] b)</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">defmacro</span></span> debug [x] `(<span class="name">println</span> <span class="string">"---"</span> '~x <span class="string">":"</span> ~x))</span><br><span class="line">(<span class="name"><span class="builtin-name">defmacro</span></span> debug2 [x] `(<span class="name">println</span> <span class="string">"---"</span> 'x <span class="string">":"</span> ~x))</span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">let</span></span> [a <span class="number">10</span>] (<span class="name">debug</span> a))</span><br><span class="line"><span class="comment">;= --- a : 10</span></span><br><span class="line">(<span class="name"><span class="builtin-name">let</span></span> [a <span class="number">10</span>] (<span class="name">debug2</span> a))</span><br><span class="line"><span class="comment">;= --- lazyseq.core/x : 10</span></span><br></pre></td></tr></table></figure>
+<h2 id="Security-Considerations"><a href="#Security-Considerations" class="headerlink" title="Security Considerations"></a>Security Considerations</h2><p><code>clojure.core/read-string</code>可以执行任意的代码，所以千万不要用这个函数去load任何非信任源处得到的代码。当然可以使用<code>clojure.core/*read-eval*</code>变量来控制这种危险的行文。从Clojure1.5开始，<code>*read-eval*</code>默认值是<code>false</code>。</p>
+<p><code>*read-eval*</code>可以在JVM启动时开启或者关闭，可以通过调整JVM参数来实现</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-Dclojure.read.eval&#x3D;false</span><br></pre></td></tr></table></figure>
+<p>当要从非信任的源中读取源代码时，可以使用<code>clojure.edn/read-string</code>，可以来限制执行任意代码的行为，可以做到一定的安全性。<code>clojure.edn/read-string</code>实现了<a href="https://github.com/edn-format/edn" target="_blank" rel="noopener">EDN format</a>，是一个用于表示数据结构的Clojure语法子集，在1.5之后引入，与<code>Datomic</code>等其他Clojure应用交换数据的一种特定格式。</p>
+<h2 id="Special-Forms-in-Detail"><a href="#Special-Forms-in-Detail" class="headerlink" title="Special Forms in Detail"></a>Special Forms in Detail</h2><p>Special forms在Clojure中的使用需要有严格的限定。</p>
+<ul>
+<li>Special form必须是一个列表，并且第一个元素是一个Special name</li>
+</ul>
+<p>一个在高阶上下文中的Special name不是一个Special form</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">user=&gt; do</span><br><span class="line">CompilerException java.lang.RuntimeException: Unable to resolve symbol: do in this context, compiling:(NO_SOURCE_PATH:0:0)</span><br></pre></td></tr></table></figure>
+<p>Macros也有类似的限定，但是要注意的是，macro在上下文中是有意义的，但是Special name完全不知道这个东西，从上面两个出错信息的内容中也能看到</p>
+<ul>
+<li>Special form 名字不是被名字空间限定的</li>
+</ul>
+<p>大多数的special form(除了<code>clojure.core/import*</code>)不是用名字空间限定的，读者必须规避掉之前所有symbol都是有名字空间限定的这个概念。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">user=&gt; `a</span><br><span class="line">user/a</span><br><span class="line">user=&gt; `do</span><br><span class="line">do</span><br><span class="line">user=&gt; `if</span><br><span class="line">if</span><br><span class="line">user=&gt; `import*</span><br><span class="line">user/import*</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Special form会和局部作用域中的名字冲突</li>
+</ul>
+<p>永远都不要使用Special name作为局部或者全局变量的名字。</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">let</span></span> [do <span class="number">1</span>]</span><br><span class="line">  (<span class="name">println</span> do))</span><br><span class="line"><span class="comment">;= 1</span></span><br></pre></td></tr></table></figure>
+<p>这也包括解构操作</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">let</span></span> [&#123;<span class="symbol">:keys</span> [do]&#125; &#123;<span class="symbol">:do</span> <span class="number">1</span>&#125;]</span><br><span class="line">  (<span class="name">println</span> do))</span><br><span class="line"><span class="comment">;= 1</span></span><br></pre></td></tr></table></figure>
+<p>关于上面这个解构方法，可以参考下面这个例子</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">(<span class="name"><span class="builtin-name">let</span></span> [&#123;<span class="symbol">:keys</span> [cleantha clea]&#125; &#123;<span class="symbol">:cleantha</span> <span class="number">3</span> <span class="symbol">:clea</span> <span class="number">1</span>&#125;]</span><br><span class="line">  (<span class="name">println</span> cleantha)</span><br><span class="line">  (<span class="name">println</span> clea))</span><br><span class="line"><span class="comment">;= 3</span></span><br><span class="line"><span class="comment">;= 1</span></span><br></pre></td></tr></table></figure>
+
+  </div>
+</article>
+
+
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="http://zjhmale.github.io" target="_blank" rel="noopener">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/zjhmale" target="_blank" rel="noopener">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#编译器与运行期"><span class="toc-number">1.</span> <span class="toc-text">编译器与运行期</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#clojure解析器-clojure-reader"><span class="toc-number">2.</span> <span class="toc-text">clojure解析器(clojure reader)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#特殊形式-Special-Forms"><span class="toc-number">3.</span> <span class="toc-text">特殊形式(Special Forms)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#牛刀小试"><span class="toc-number">4.</span> <span class="toc-text">牛刀小试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Quote"><span class="toc-number">5.</span> <span class="toc-text">Quote</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Unquote"><span class="toc-number">6.</span> <span class="toc-text">Unquote</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Unquote-splicing"><span class="toc-number">7.</span> <span class="toc-text">Unquote-splicing</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Macro-Hygiene-and-gensym"><span class="toc-number">8.</span> <span class="toc-text">Macro Hygiene and gensym</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Namespace-Qualification-Within-Syntax-Quote"><span class="toc-number">9.</span> <span class="toc-text">Namespace Qualification Within Syntax Quote</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Generated-Symbols-gensyms"><span class="toc-number">10.</span> <span class="toc-text">Generated Symbols(gensyms)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#宏扩展-Macroexpansions"><span class="toc-number">11.</span> <span class="toc-text">宏扩展(Macroexpansions)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Full-Macroexpansion"><span class="toc-number">12.</span> <span class="toc-text">Full Macroexpansion</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Quote-与-Syntax-Quote-的不同之处"><span class="toc-number">13.</span> <span class="toc-text">Quote 与 Syntax Quote 的不同之处</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Security-Considerations"><span class="toc-number">14.</span> <span class="toc-text">Security Considerations</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Special-Forms-in-Detail"><span class="toc-number">15.</span> <span class="toc-text">Special Forms in Detail</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/" target="_blank" rel="noopener"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/&text=clojure macros and metaprogramming" target="_blank" rel="noopener"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/&title=clojure macros and metaprogramming" target="_blank" rel="noopener"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/&is_video=false&description=clojure macros and metaprogramming" target="_blank" rel="noopener"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=clojure macros and metaprogramming&body=Check out this article: http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/&title=clojure macros and metaprogramming" target="_blank" rel="noopener"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/&title=clojure macros and metaprogramming" target="_blank" rel="noopener"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/&title=clojure macros and metaprogramming" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/&title=clojure macros and metaprogramming" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/&name=clojure macros and metaprogramming&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=http://yoursite.com/2013/08/21/2013-08-21-clojure-macros-and-metaprogramming/&t=clojure macros and metaprogramming" target="_blank" rel="noopener"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2013-2020
+    Zheng Jihui
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="http://zjhmale.github.io" target="_blank" rel="noopener">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/zjhmale" target="_blank" rel="noopener">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+
+    <!-- jquery -->
+
+<script src="/lib/jquery/jquery.min.js"></script>
+
+
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+
+<!-- clipboard -->
+
+  
+<script src="/lib/clipboard/clipboard.min.js"></script>
+
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Disqus Comments --><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+</body>
+</html>
